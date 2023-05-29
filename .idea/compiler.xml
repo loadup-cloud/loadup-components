@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="loadup-components-captcha" />
+        <module name="loadup-components-gateway" />
+        <module name="loadup-components-retrytask" />
+        <module name="loadup-components-tracer" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="loadup-components" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="loadup-components" options="" />
+      <module name="loadup-components-captcha" options="-parameters" />
+      <module name="loadup-components-gateway" options="-parameters" />
+      <module name="loadup-components-retrytask" options="-parameters" />
+      <module name="loadup-components-tracer" options="-parameters" />
+    </option>
+  </component>
+</project>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.github.loadup.framework</groupId>
+        <artifactId>loadup-dependencies</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <groupId>com.github.loadup.components</groupId>
+    <artifactId>loadup-components-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>loadup-components-captcha</module>
+        <module>loadup-components-retrytask</module>
+        <module>loadup-components-gateway</module>
+        <module>loadup-components-tracer</module>
+    </modules>
+
+
+    <distributionManagement>
+        <repository>
+            <id>loadup-github</id>
+            <name>LoadUp Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
+        </repository>
+        <snapshotRepository>
+            <id>loadup-github</id>
+            <name>LoadUp Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+</project>
