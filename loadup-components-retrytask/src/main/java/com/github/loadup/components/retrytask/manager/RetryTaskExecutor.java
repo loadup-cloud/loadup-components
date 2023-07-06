@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.manager;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,9 +45,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * the implement of retry task executor
- *
- * 
- * 
  */
 @Component
 @Slf4j
@@ -91,7 +88,7 @@ public class RetryTaskExecutor implements TaskExecutor {
 
         } catch (Exception e) {
 
-            log.error( "RetryTaskExecutor execute system error,retryTask=",
+            log.error("RetryTaskExecutor execute system error,retryTask=",
                     retryTask);
             // retry next time
             RetryStrategyUtil.updateRetryTaskByStrategy(retryTask, retryStrategyConfig);
@@ -114,8 +111,7 @@ public class RetryTaskExecutor implements TaskExecutor {
             RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
                     .buildRetryStrategyConfig(retryTask.getBizType());
 
-            RetryTaskExecuteSPI<?> retryTaskExecuteSPI = retryTaskComponent
-                    .getTaskListener(retryTask.getBizType());
+            RetryTaskExecuteSPI<?> retryTaskExecuteSPI = retryStrategyConfig.getListener();
 
             // prepose handler
             beforeExecute(retryTask);
@@ -197,14 +193,14 @@ public class RetryTaskExecutor implements TaskExecutor {
 
         //whether exist the tracer context
         //if (AbstractLogContext.get() == null) {
-            ////construct an empty LogContext, avoid exception：No tracer context found in current thread context.
-            //try {
-            //    DummyContextUtil.createDummyLogContext();
-            //} catch (Exception e) {
-            //    // in this case, we think that we had check AbstractLogContext.get() is null before, so it must not
-            //    // throw Exception, finally we eat the exception.
-            //    LogUtil.error(LOGGER, e, "RetryTaskExecutor create tracer failed");
-            //}
+        ////construct an empty LogContext, avoid exception：No tracer context found in current thread context.
+        //try {
+        //    DummyContextUtil.createDummyLogContext();
+        //} catch (Exception e) {
+        //    // in this case, we think that we had check AbstractLogContext.get() is null before, so it must not
+        //    // throw Exception, finally we eat the exception.
+        //    LogUtil.error(LOGGER, e, "RetryTaskExecutor create tracer failed");
+        //}
         //}
         // 超过NextExecuteTime 执行，打印告警
         Date today = new Date();

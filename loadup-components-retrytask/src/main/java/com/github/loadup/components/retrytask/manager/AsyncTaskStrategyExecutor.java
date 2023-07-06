@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.manager;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.manager;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,29 +26,30 @@ package com.github.loadup.components.retrytask.manager;
  * #L%
  */
 
-import com.github.loadup.components.retrytask.config.RetryTaskComponent;
 import com.github.loadup.components.retrytask.model.RetryTask;
-import java.util.concurrent.Executor;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
 
 /**
  * the executer of executing the task asynchronized
- * 
- * 
- * 
  */
+@Component
 public class AsyncTaskStrategyExecutor implements TaskStrategyExecutor {
 
-    /** the executor of retry task */
+    /**
+     * the executor of retry task
+     */
     @Autowired
-    private RetryTaskExecutor  retryTaskExecutor;
+    private RetryTaskExecutor retryTaskExecutor;
 
-    /** retry task component */
+    /**
+     * retry task component
+     */
     @Autowired
-    private RetryTaskComponent retryTaskComponent;
+    private ThreadPoolTaskExecutor retryTaskExecutorThreadPool;
 
-    /** 
+    /**
      * @see TaskExecutor#execute(RetryTask)
      */
     @Override
@@ -57,9 +57,7 @@ public class AsyncTaskStrategyExecutor implements TaskStrategyExecutor {
 
         RetryTaskRunner retryTaskRunner = new RetryTaskRunner(retryTaskExecutor, retryTask);
 
-        Executor executor = retryTaskComponent.getExecutor(retryTask.getBizType());
-
-        executor.execute(retryTaskRunner);
+        retryTaskExecutorThreadPool.execute(retryTaskRunner);
 
     }
 

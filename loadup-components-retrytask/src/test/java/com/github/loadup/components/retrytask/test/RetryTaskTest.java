@@ -45,10 +45,10 @@ public class RetryTaskTest {
         req.setBizType("DEMO1");
         req.setBizId("1231111111212121212");
         req.setBizContext("xxx");
-        req.setScheduleExecuteType(ScheduleExecuteType.DEFAULT);
+        req.setScheduleExecuteType(ScheduleExecuteType.ASYNC);
         RetryTask register = retryComponentService.register(req);
         System.out.println(register);
-        Thread.sleep(100000);
+        Thread.sleep(1000000);
     }
 
 }

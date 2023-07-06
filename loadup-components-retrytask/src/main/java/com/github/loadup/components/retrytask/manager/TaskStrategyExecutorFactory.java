@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.manager;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.manager;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,47 +28,32 @@ package com.github.loadup.components.retrytask.manager;
 
 import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 /**
  * the factory of task executer
- * 
- * 
- * 
  */
+@Component
+@Getter
+@Setter
 public class TaskStrategyExecutorFactory {
 
-    /** the factory of task executer .key为ScheduleExecuteType.getCode() */
+    /**
+     * the factory of task executer .key为ScheduleExecuteType.getCode()
+     */
     private Map<String, TaskStrategyExecutor> taskStrategyExecutors;
 
     /**
      * obtain the task strategy executor by type
-     * 
+     *
      * @param scheduleExecuteType scheduleExecuteType
-     * @return  task strategy executor
+     * @return task strategy executor
      */
-    public TaskStrategyExecutor obtainTaskStrategyExecutor(ScheduleExecuteType scheduleExecuteType) {
+    public TaskStrategyExecutor findTaskStrategyExecutor(ScheduleExecuteType scheduleExecuteType) {
 
         return taskStrategyExecutors.get(scheduleExecuteType.getCode());
-    }
-
-    // ~~~ getters and setters
-
-    /**
-     * Getter method for property <tt>taskStrategyExecutors</tt>.
-     * 
-     * @return property value of taskStrategyExecutors
-     */
-    public Map<String, TaskStrategyExecutor> getTaskStrategyExecutors() {
-        return taskStrategyExecutors;
-    }
-
-    /**
-     * Setter method for property <tt>taskStrategyExecutors</tt>.
-     * 
-     * @param taskStrategyExecutors value to be assigned to property taskStrategyExecutors
-     */
-    public void setTaskStrategyExecutors(Map<String, TaskStrategyExecutor> taskStrategyExecutors) {
-        this.taskStrategyExecutors = taskStrategyExecutors;
     }
 
 }

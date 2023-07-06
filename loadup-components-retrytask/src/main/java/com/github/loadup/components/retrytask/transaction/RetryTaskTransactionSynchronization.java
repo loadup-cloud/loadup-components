@@ -109,7 +109,7 @@ public class RetryTaskTransactionSynchronization implements TransactionSynchroni
     public void afterCompletion(int status) {
         if (status == STATUS_COMMITTED) {
             TaskStrategyExecutor taskStrategyExecutor = taskStrategyExecutorFactory
-                    .obtainTaskStrategyExecutor(scheduleExecuteType);
+                    .findTaskStrategyExecutor(scheduleExecuteType);
             taskStrategyExecutor.execute(retryTask);
         }
     }

@@ -247,7 +247,7 @@ public class RetryComponentServiceImpl implements RetryComponentService {
         } else {
             //when there is no trasaction, the task will be executed immediatelly
             TaskStrategyExecutor taskStrategyExecutor = taskStrategyExecutorFactory
-                    .obtainTaskStrategyExecutor(scheduleExecuteType);
+                    .findTaskStrategyExecutor(scheduleExecuteType);
 
             taskStrategyExecutor.execute(retryTask);
         }

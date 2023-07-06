@@ -16,7 +16,9 @@ retrytask:
       maxLoadNum: 1000
       executeImmediately: true
       ignorePriority: true
+      listenerName: demo1Listener
     - bizType: DEMO2
       maxLoadNum: 1000
       executeImmediately: true
       ignorePriority: true
+      listenerName: demo1Listener

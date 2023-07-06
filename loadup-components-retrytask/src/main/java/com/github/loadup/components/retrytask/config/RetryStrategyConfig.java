@@ -28,9 +28,9 @@ package com.github.loadup.components.retrytask.config;
 
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.enums.RetryStrategyType;
+import com.github.loadup.components.retrytask.spi.RetryTaskExecuteSPI;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
@@ -81,7 +81,6 @@ public class RetryStrategyConfig {
      */
     private int maxExecuteCount = -1;
 
-
     /**
      * extreme retryTime, used to load task when task.processingFlag = T, the unit is minute </br>
      * for example: when RetryTaskExecutor.beforeExecute update processingFlag = 'T', lately update processing = 'F' failed,
@@ -108,5 +107,8 @@ public class RetryStrategyConfig {
      * 这个表示单次任务执行时间限制（如果单次任务执行超时，则终止执行当前任务）；
      */
     private String attemptTimeLimiter;
+
+    private RetryTaskExecuteSPI<Object> listener;
+    private String                      listenerName;
 
 }
