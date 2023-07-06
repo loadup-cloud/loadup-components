@@ -1,38 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.github.loadup.framework</groupId>
-        <artifactId>loadup-dependencies</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
-    <groupId>com.github.loadup.components</groupId>
-    <artifactId>loadup-components-parent</artifactId>
+  <parent>
+    <groupId>com.github.loadup.framework</groupId>
+    <artifactId>loadup-dependencies</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <modules>
-        <module>loadup-components-captcha</module>
-        <module>loadup-components-retrytask</module>
-        <module>loadup-components-gateway</module>
-        <module>loadup-components-tracer</module>
-    </modules>
+  </parent>
+  <groupId>com.github.loadup.components</groupId>
+  <artifactId>loadup-components-parent</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>loadup-components-captcha</module>
+    <module>loadup-components-retrytask</module>
+    <module>loadup-components-gateway</module>
+    <module>loadup-components-tracer</module>
+    <module>loadup-components-network</module>
+  </modules>
+  <properties>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <loadup.capability.version>1.0.0-SNAPSHOT</loadup.capability.version>
+    <loadup.components.version>1.0.0-SNAPSHOT</loadup.components.version>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.github.loadup.capability</groupId>
+        <artifactId>loadup-common-util</artifactId>
+        <version>${loadup.capability.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.loadup.capability</groupId>
+        <artifactId>loadup-common-lang</artifactId>
+        <version>${loadup.capability.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-
-    <distributionManagement>
-        <repository>
-            <id>loadup-github</id>
-            <name>LoadUp Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
-        </repository>
-        <snapshotRepository>
-            <id>loadup-github</id>
-            <name>LoadUp Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
-        </snapshotRepository>
-    </distributionManagement>
+  <distributionManagement>
+    <repository>
+      <id>loadup-github</id>
+      <name>LoadUp Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
+    </repository>
+    <snapshotRepository>
+      <id>loadup-github</id>
+      <name>LoadUp Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/loadup-cloud/loadup-packages</url>
+    </snapshotRepository>
+  </distributionManagement>
 
 
 </project>
