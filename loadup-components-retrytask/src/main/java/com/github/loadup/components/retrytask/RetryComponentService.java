@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,33 +31,30 @@ import com.github.loadup.components.retrytask.model.RetryTaskRequest;
 
 /**
  * Core Service of retry component
- * 
- * 
- * 
  */
 public interface RetryComponentService {
 
     /**
      * The register of retry component
-     * 
-     * @param retryTaskRequest  request of retry task
-     * @return                  retry task
+     *
+     * @param retryTaskRequest request of retry task
+     * @return retry task
      */
     RetryTask register(RetryTaskRequest retryTaskRequest);
 
     /**
      * delete the retry task
-     * 
-     * @param bizId     business id
-     * @param bizType   business type，user define self
+     *
+     * @param bizId   business id
+     * @param bizType business type，user define self
      */
     void deleteRetryTask(String bizId, String bizType);
 
     /**
      * update the retry task, increase the retry count, modify the next execute time
-     * 
-     * @param bizId     business id
-     * @param bizType   business type，user define self
+     *
+     * @param bizId   business id
+     * @param bizType business type，user define self
      */
     void updateRetryTask(String bizId, String bizType);
 

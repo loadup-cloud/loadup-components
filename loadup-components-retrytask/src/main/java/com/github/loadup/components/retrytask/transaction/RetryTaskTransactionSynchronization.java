@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.transaction;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.transaction;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,88 +27,94 @@ package com.github.loadup.components.retrytask.transaction;
  */
 
 import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
-import com.github.loadup.components.retrytask.manager.RetryTaskExecuteManager;
+import com.github.loadup.components.retrytask.manager.TaskStrategyExecutor;
+import com.github.loadup.components.retrytask.manager.TaskStrategyExecutorFactory;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import org.springframework.transaction.support.TransactionSynchronization;
 
 /**
  * 重试任务事务同步回调方法
- * 
- * 
- * 
  */
 public class RetryTaskTransactionSynchronization implements TransactionSynchronization {
 
-    /** 重试任务 */
+    /**
+     * 重试任务
+     */
     private RetryTask retryTask;
 
-    /** 重试任务执行管理器 */
-    private RetryTaskExecuteManager retryTaskExecuteManager;
+    /**
+     * 重试任务执行管理器
+     */
+    private TaskStrategyExecutorFactory taskStrategyExecutorFactory;
 
-    /** 执行策略类型 */
+    /**
+     * 执行策略类型
+     */
     private ScheduleExecuteType scheduleExecuteType;
 
     /**
      * 构造函数
-     * 
-     * @param retryTask retry task
-     * @param retryTaskExecuteManager   retryTaskExecuteManager
-     * @param scheduleExecuteType scheduleExecuteType
+     *
+     * @param retryTask               retry task
+     * @param retryTaskExecuteManager retryTaskExecuteManager
+     * @param scheduleExecuteType     scheduleExecuteType
      */
     public RetryTaskTransactionSynchronization(RetryTask retryTask,
-                                               RetryTaskExecuteManager retryTaskExecuteManager,
-                                               ScheduleExecuteType scheduleExecuteType) {
+            TaskStrategyExecutorFactory taskStrategyExecutorFactory,
+            ScheduleExecuteType scheduleExecuteType) {
         this.retryTask = retryTask;
-        this.retryTaskExecuteManager = retryTaskExecuteManager;
+        this.taskStrategyExecutorFactory = taskStrategyExecutorFactory;
         this.scheduleExecuteType = scheduleExecuteType;
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#suspend()
      */
     @Override
     public void suspend() {
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#resume()
      */
     @Override
     public void resume() {
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#beforeCommit(boolean)
      */
     @Override
     public void beforeCommit(boolean readOnly) {
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#beforeCompletion()
      */
     @Override
     public void beforeCompletion() {
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#afterCommit()
      */
     @Override
     public void afterCommit() {
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#afterCompletion(int)
      */
     @Override
     public void afterCompletion(int status) {
         if (status == STATUS_COMMITTED) {
-            retryTaskExecuteManager.execute(retryTask, scheduleExecuteType);
+            TaskStrategyExecutor taskStrategyExecutor = taskStrategyExecutorFactory
+                    .obtainTaskStrategyExecutor(scheduleExecuteType);
+            taskStrategyExecutor.execute(retryTask);
         }
     }
 
-    /** 
+    /**
      * @see org.springframework.transaction.support.TransactionSynchronization#flush()
      */
     @Override

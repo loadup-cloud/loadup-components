@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.repository;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,9 +26,9 @@ package com.github.loadup.components.retrytask.repository;
  * #L%
  */
 
+import com.github.loadup.components.retrytask.config.RetryDataSourceConfig;
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
 import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
-import com.github.loadup.components.retrytask.manager.RetryStrategyManager;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +39,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * the implement of retry task repository
- *
- * 
- * 
  */
 @Slf4j
 @Component("retryTaskRepository")
@@ -56,11 +53,6 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
      */
     @Autowired
     private RetryStrategyFactory      retryStrategyFactory;
-    /**
-     * the manager of retry strategy
-     */
-    @Autowired
-    private RetryStrategyManager      retryStrategyManager;
 
     /**
      * @see RetryTaskRepository#insert(RetryTask)
@@ -112,30 +104,21 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
         retryTaskDAO.update(retryTask);
     }
 
-    /**
-     * @see RetryTaskRepository#load(String, String, int)
-     */
     @Override
-    public List<RetryTask> load(String virtualBizId, String bizType, int rowNum) {
+    public List<RetryTask> load(String bizType, int rowNum) {
 
         RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
         return retryTaskDAO.load(bizType, rowNum);
     }
 
-    /**
-     * @see RetryTaskRepository#loadByPriority(String, String, String, int)
-     */
     @Override
-    public List<RetryTask> loadByPriority(String virtualBizId, String bizType, String priority, int rowNum) {
+    public List<RetryTask> loadByPriority(String bizType, String priority, int rowNum) {
         RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
         return retryTaskDAO.loadByPriority(bizType, priority, rowNum);
     }
 
-    /**
-     * @see RetryTaskRepository#loadUnuaualTask(java.lang.String, java.lang.String, int, int)
-     */
     @Override
-    public List<RetryTask> loadUnuaualTask(String virtualBizId, String bizType, int extremeRetryTime, int rowNum) {
+    public List<RetryTask> loadUnuaualTask(String bizType, int extremeRetryTime, int rowNum) {
         RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
         return retryTaskDAO.loadUnuaualTask(bizType, extremeRetryTime, rowNum);
     }
@@ -157,21 +140,17 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
             if (retryTaskDAOs.get(bizType) != null) {
                 return retryTaskDAOs.get(bizType);
             }
+            RetryDataSourceConfig retryDataSourceConfig = retryStrategyFactory.buildRetryDataSourceConfig(bizType);
+            RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(bizType);
 
-            RetryStrategyConfig retryStrategyConfig = retryStrategyManager
-                    .getRetryStrategy(bizType);
-
-            if (retryStrategyConfig == null) {
-                log.warn(
-                        "the bizType does not match the retryDataSourceConfig and retryStrategyConfig. bizType=",
-                        bizType,
+            if (retryDataSourceConfig == null || retryStrategyConfig == null) {
+                log.warn("the bizType does not match the retryDataSourceConfig and retryStrategyConfig. bizType=", bizType,
                         ",retryStrategyConfig=", retryStrategyConfig);
-                throw new RuntimeException(
-                        "the bizType does not match the retryDataSourceConfig and retryStrategyConfig");
+                throw new RuntimeException("the bizType does not match the retryDataSourceConfig and retryStrategyConfig");
             }
 
             //  构建retry task dao
-            RetryTaskDAO jdbcRetryTaskDAO = new JdbcRetryTaskDAO(null);
+            RetryTaskDAO jdbcRetryTaskDAO = new JdbcRetryTaskDAO(retryDataSourceConfig);
 
             // 将动态代理类存放到map中
             retryTaskDAOs.put(bizType, jdbcRetryTaskDAO);

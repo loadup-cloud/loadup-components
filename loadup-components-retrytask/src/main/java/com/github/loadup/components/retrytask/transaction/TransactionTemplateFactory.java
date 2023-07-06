@@ -74,7 +74,7 @@ public class TransactionTemplateFactory {
             DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
             transactionTemplate.setTransactionManager(transactionManager);
             RetryDataSourceConfig retryDataSourceConfig = retryStrategyFactory
-                .obtainRetryDataSourceConfig(bizType);
+                .buildRetryDataSourceConfig(bizType);
             transactionManager.setDataSource(retryDataSourceConfig.getDataSource());
 
             transactionTemplates.put(bizType, transactionTemplate);

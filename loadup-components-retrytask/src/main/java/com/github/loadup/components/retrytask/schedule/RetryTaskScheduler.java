@@ -1,5 +1,4 @@
-
-package com.github.loadup.components.retrytask.schedule.trigger;
+package com.github.loadup.components.retrytask.schedule;
 
 /*-
  * #%L
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.schedule.trigger;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,29 +26,35 @@ package com.github.loadup.components.retrytask.schedule.trigger;
  * #L%
  */
 
-import com.github.loadup.components.retrytask.schedule.DataLoadFilterItem;
-import com.github.loadup.components.retrytask.schedule.RetryTaskExecuter;
-import com.github.loadup.components.retrytask.schedule.RetryTaskLoader;
-import com.github.loadup.components.retrytask.schedule.RetryTaskSplitor;
-import com.github.loadup.components.retrytask.utils.ApplicationContextAwareUtil;
+import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
+import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
 import java.util.List;
-
+import java.util.Map;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-
 /**
  * RetryTaskScheduler
- * 
- * 
- * 
  */
 @Component
 @Slf4j
 public class RetryTaskScheduler {
+
+    @Resource
+    private RetryTaskLoader        retryTaskLoader;
+    @Resource
+    private ThreadPoolTaskExecutor retryTaskExecutorThreadPool;
+    @Resource
+    private ThreadPoolTaskExecutor retryTaskLoaderThreadPool;
+    @Resource
+    private RetryTaskExecuter      retryTaskExecuter;
+    @Autowired
+    private RetryStrategyFactory   retryStrategyFactory;
 
     /**
      * trigger retry task by scheduled
@@ -60,56 +65,22 @@ public class RetryTaskScheduler {
 
         long startTime = System.currentTimeMillis();
         log.info("RetryTaskScheduler begin retry.");
-
         try {
-
-            // split
-            List<DataLoadFilterItem> dataLoadFilterItems = ApplicationContextAwareUtil.getBean(
-                RetryTaskSplitor.class).split();
-
-            // load
-            for (final DataLoadFilterItem dataLoadFilterItem : dataLoadFilterItems) {
-
-                // load async
-                ApplicationContextAwareUtil.getBean("retryTaskLoaderThreadPool",
-                    ThreadPoolTaskExecutor.class).execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        List<String> businessKeys = ApplicationContextAwareUtil.getBean(
-                            RetryTaskLoader.class).load(dataLoadFilterItem);
-
-                        for (final String businessKey : businessKeys) {
-
-                            // execute async
-                            execute(businessKey);
-                        }
+            Map<String, RetryStrategyConfig> retryStrategyConfigMap = retryStrategyFactory.getRetryStrategyConfigs();
+            for (String bizType : retryStrategyConfigMap.keySet()) {
+                // load by bizType async
+                retryTaskLoaderThreadPool.execute(() -> {
+                    List<String> businessKeys = retryTaskLoader.load(bizType);
+                    for (final String businessKey : businessKeys) {
+                        // execute async
+                        retryTaskExecutorThreadPool.execute(() -> retryTaskExecuter.execute(businessKey));
                     }
                 });
             }
+
         } finally {
             long elapseTime = System.currentTimeMillis() - startTime;
-            log.info( "RetryTaskScheduler finish retry, elapseTime="
-                                          + elapseTime);
+            log.info("RetryTaskScheduler finish retry, elapseTime=" + elapseTime);
         }
-    }
-
-    /**
-     * execute 
-     * 
-     * @param businessKey   businessKey
-     */
-    private void execute(final String businessKey) {
-
-        ApplicationContextAwareUtil.getBean("retryTaskExecutorThreadPool",
-            ThreadPoolTaskExecutor.class).execute(new Runnable() {
-
-            @Override
-            public void run() {
-
-                ApplicationContextAwareUtil.getBean(RetryTaskExecuter.class).execute(businessKey);
-            }
-        });
     }
 }

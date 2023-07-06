@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.impl;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,9 +28,10 @@ package com.github.loadup.components.retrytask.impl;
 
 import com.github.loadup.components.retrytask.RetryComponentService;
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
+import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
 import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
-import com.github.loadup.components.retrytask.manager.RetryStrategyManager;
-import com.github.loadup.components.retrytask.manager.RetryTaskExecuteManager;
+import com.github.loadup.components.retrytask.manager.TaskStrategyExecutor;
+import com.github.loadup.components.retrytask.manager.TaskStrategyExecutorFactory;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.model.RetryTaskRequest;
 import com.github.loadup.components.retrytask.repository.RetryTaskRepository;
@@ -52,9 +53,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * The implement of Core Service of retry component
- *
- * 
- * 
  */
 @Slf4j
 @Component("retryComponentService")
@@ -67,22 +65,18 @@ public class RetryComponentServiceImpl implements RetryComponentService {
     private RetryTaskRepository retryTaskRepository;
 
     /**
-     * the task execute manager of retry task
-     */
-    @Autowired
-    private RetryTaskExecuteManager retryTaskExecuteManager;
-
-    /**
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyManager retryStrategyManager;
+    private RetryStrategyFactory retryStrategyFactory;
 
     /**
      * the factory of transaction templete
      */
     @Autowired
-    private TransactionTemplateFactory transactionTemplateFactory;
+    private TransactionTemplateFactory  transactionTemplateFactory;
+    @Autowired
+    private TaskStrategyExecutorFactory taskStrategyExecutorFactory;
 
     /**
      * @see RetryComponentService#register(RetryTaskRequest)
@@ -124,8 +118,8 @@ public class RetryComponentServiceImpl implements RetryComponentService {
         // check params
         checkParams(bizId, bizType);
 
-        final RetryStrategyConfig retryStrategyConfig = retryStrategyManager
-                .getRetryStrategy(bizType);
+        final RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
+                .buildRetryStrategyConfig(bizType);
         // obtain the transaction template
         TransactionTemplate transactionTemplate = transactionTemplateFactory
                 .obtainTemplate(bizType);
@@ -206,8 +200,8 @@ public class RetryComponentServiceImpl implements RetryComponentService {
     private RetryTask constructRetryTask(RetryTaskRequest retryTaskRequest) {
 
         RetryTask retryTask = new RetryTask();
-        RetryStrategyConfig retryStrategyConfig = retryStrategyManager
-                .getRetryStrategy(retryTaskRequest.getBizType());
+        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
+                .buildRetryStrategyConfig(retryTaskRequest.getBizType());
         // get the infomation from the thread context
         ContextUtil.extractContext2Task(retryTask);
         retryTask
@@ -217,7 +211,7 @@ public class RetryComponentServiceImpl implements RetryComponentService {
         retryTask.setExecutedTimes(0);
         retryTask.setNextExecuteTime(DateUtils.addMinutes(new Date(),
                 retryTaskRequest.getStartExecuteInterval()));
-        retryTask.setMaxExecuteTimes(retryStrategyConfig.getMaxExecuteCnt());
+        retryTask.setMaxExecuteTimes(retryStrategyConfig.getMaxExecuteCount());
         retryTask.setUpToMaxExecuteTimesFlag(false);
         retryTask.setProcessingFlag(false);
         retryTask.setBizContext(retryTaskRequest.getBizContext());
@@ -236,7 +230,7 @@ public class RetryComponentServiceImpl implements RetryComponentService {
      */
     private void processTask(RetryTask retryTask, ScheduleExecuteType scheduleExecuteType) {
 
-        RetryStrategyConfig retryStrategyConfig = retryStrategyManager.getRetryStrategy(retryTask
+        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(retryTask
                 .getBizType());
 
         // is need execute immediately
@@ -249,10 +243,13 @@ public class RetryComponentServiceImpl implements RetryComponentService {
             // callback
             TransactionSynchronizationManager
                     .registerSynchronization(new RetryTaskTransactionSynchronization(retryTask,
-                            retryTaskExecuteManager, scheduleExecuteType));
+                            taskStrategyExecutorFactory, scheduleExecuteType));
         } else {
             //when there is no trasaction, the task will be executed immediatelly
-            retryTaskExecuteManager.execute(retryTask, scheduleExecuteType);
+            TaskStrategyExecutor taskStrategyExecutor = taskStrategyExecutorFactory
+                    .obtainTaskStrategyExecutor(scheduleExecuteType);
+
+            taskStrategyExecutor.execute(retryTask);
         }
     }
 

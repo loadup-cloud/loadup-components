@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.50.207:3306/retrytask
+    username: admin
+    password: Rvu8BVRBLXvywVKRTQ2H
+
+retrytask:
+  dataSourceList:
+    - bizType: DEMO1,DEMO2
+      dbMode: SAME
+      dbType: MYSQL
+      datasourceName: "dataSource"
+  strategyList:
+    - bizType: DEMO1
+      maxLoadNum: 1000
+      executeImmediately: true
+      ignorePriority: true
+    - bizType: DEMO2
+      maxLoadNum: 1000
+      executeImmediately: true
+      ignorePriority: true

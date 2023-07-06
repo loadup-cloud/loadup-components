@@ -88,7 +88,7 @@ public interface RetryTaskRepository {
      * @param rowNum    total row number
      * @return task id list
      */
-    List<RetryTask> load(String virtualBizId, String bizType, int rowNum);
+    List<RetryTask> load( String bizType, int rowNum);
 
     /**
      * 根据bizType和规定最大捞取时间捞取rowNum数量的任务id(不区分租户id)，只能给到调度三层分发的Loader层使用
@@ -101,7 +101,7 @@ public interface RetryTaskRepository {
      * @param rowNum    total row number
      * @return task id list
      */
-    List<RetryTask> loadByPriority(String virtualBizId, String bizType, String priority, int rowNum);
+    List<RetryTask> loadByPriority(  String bizType, String priority, int rowNum);
 
     /**
      * 根据bizType和规定最大捞取时间捞取rowNum数量的任务id(不区分租户id)，只能给到调度三层分发的Loader层使用
@@ -113,5 +113,5 @@ public interface RetryTaskRepository {
      * @param extremeRetryTime   @see RetryStrategyConfig.extremeRetryTime   
      * @return task id list
      */
-    List<RetryTask> loadUnuaualTask(String virtualBizId, String bizType, int extremeRetryTime, int rowNum);
+    List<RetryTask> loadUnuaualTask(  String bizType, int extremeRetryTime, int rowNum);
 }

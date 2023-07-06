@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.enums;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,9 +32,6 @@ import lombok.Getter;
 
 /**
  * The type of retry strategy
- *
- * 
- * 
  */
 @Getter
 @AllArgsConstructor
@@ -46,40 +43,48 @@ public enum RetryStrategyType implements IEnum {
      */
     INTERVAL_SEQUENCE("INTERVAL_SEQUENCE", "User can define interval"),
     /**
+     * ExponentialWaitStrategy
      * 指数等待策略
      * 第一次失败后，依次等待时长：2^1 * 100;2^2 * 100；2^3 * 100;...
      * http://en.wikipedia.org/wiki/Exponential_backoff
+     * ExponentialWaitStrategy
      */
-    ExponentialWaitStrategy("ExponentialWaitStrategy", "User can define interval"),
+    EXPONENTIAL_WAIT_STRATEGY("EXPONENTIAL_WAIT_STRATEGY", "User can define interval"),
     /**
+     * FibonacciWaitStrategy
      * 斐波那契等待策略
      * 第一次失败后，依次等待时长：1*100;1*100；2*100；3*100；5*100；...
      */
-    FibonacciWaitStrategy("FibonacciWaitStrategy", "User can define interval"),
+    FIBONACCI_WAIT_STRATEGY("FIBONACCI_WAIT_STRATEGY", "User can define interval"),
     /**
+     * FixedWaitStrategy
      * 固定时长等待策略
      */
-    FixedWaitStrategy("FixedWaitStrategy", "User can define interval"),
+    FIXED_WAIT_STRATEGY("FIXED_WAIT_STRATEGY", "User can define interval"),
 
     /**
+     * RandomWaitStrategy
      * 随机时长等待策略
      */
-    RandomWaitStrategy("RandomWaitStrategy", "User can define interval"),
+    RANDOM_WAIT_STRATEGY("RANDOM_WAIT_STRATEGY", "User can define interval"),
     /**
+     * IncrementingWaitStrategy
      * 递增等待策略
      * 第一次失败后，将依次等待1s；6s(1+5)；11(1+5+5)s；16(1+5+5+5)s；...
      */
-    IncrementingWaitStrategy("IncrementingWaitStrategy", "User can define interval"),
+    INCREMENTING_WAIT_STRATEGY("INCREMENTING_WAIT_STRATEGY", "User can define interval"),
     /**
+     * ExceptionWaitStrategy
      * 异常等待策略
      * 根据所发生的异常指定重试的等待时长；如果异常不匹配，则等待时长为0；
      */
-    ExceptionWaitStrategy("ExceptionWaitStrategy", "User can define interval"),
+    EXCEPTION_WAIT_STRATEGY("EXCEPTION_WAIT_STRATEGY", "User can define interval"),
     /**
+     * CompositeWaitStrategy
      * 复合等待策略
      * 复合等待策略；如果所执行的程序满足一个或多个等待策略，那么等待时间为所有等待策略时间的总和。
      */
-    CompositeWaitStrategy("CompositeWaitStrategy", "User can define interval"),
+    COMPOSITE_WAIT_STRATEGY("COMPOSITE_WAIT_STRATEGY", "User can define interval"),
     ;
 
     /**

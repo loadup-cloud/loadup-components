@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.utils;
  * #L%
  */
 
+import com.github.loadup.capability.common.util.core.UniqueId;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import java.util.UUID;
 
@@ -44,7 +45,7 @@ public class IdUtil {
      */
     public static String generateId(String shardingIdx) {
 
-        String uuid = UUID.randomUUID().toString();//UniqID.getInstance().getUniqIDHash();
+        String uuid = UniqueId.getInstance().getUniqIDHash();
         return uuid + shardingIdx + RetryTaskConstants.ID_DEFAULT_SUFFIX;
     }
 

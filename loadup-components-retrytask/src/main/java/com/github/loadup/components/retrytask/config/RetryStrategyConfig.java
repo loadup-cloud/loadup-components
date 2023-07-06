@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.config;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,15 +30,15 @@ import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.enums.RetryStrategyType;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * The config of retry task strategy
- *
- * 
- * 
  */
 @Getter
 @Setter
+@Component
 public class RetryStrategyConfig {
 
     /**
@@ -79,12 +79,8 @@ public class RetryStrategyConfig {
      * the maximum of the sum of execution
      * -1 is infinite
      */
-    private int maxExecuteCnt;
+    private int maxExecuteCount = -1;
 
-    /**
-     * is need retryTask start transaction?
-     */
-    private boolean needTransaction = false;
 
     /**
      * extreme retryTime, used to load task when task.processingFlag = T, the unit is minute </br>

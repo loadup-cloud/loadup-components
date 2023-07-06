@@ -27,6 +27,7 @@ package com.github.loadup.components.retrytask.manager;
  */
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
+import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
 import com.github.loadup.components.retrytask.config.RetryTaskComponent;
 import com.github.loadup.components.retrytask.constant.RetryTaskLoggerConstants;
 import com.github.loadup.components.retrytask.model.RetryTask;
@@ -39,7 +40,6 @@ import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,7 @@ public class RetryTaskExecutor implements TaskExecutor {
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyManager retryStrategyManager;
+    private RetryStrategyFactory retryStrategyFactory;
 
     /**
      * retry task component
@@ -82,7 +82,7 @@ public class RetryTaskExecutor implements TaskExecutor {
     @Override
     public void execute(RetryTask retryTask) {
 
-        RetryStrategyConfig retryStrategyConfig = retryStrategyManager.getRetryStrategy(retryTask
+        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(retryTask
                 .getBizType());
 
         try {
@@ -111,8 +111,8 @@ public class RetryTaskExecutor implements TaskExecutor {
 
         try {
 
-            RetryStrategyConfig retryStrategyConfig = retryStrategyManager
-                    .getRetryStrategy(retryTask.getBizType());
+            RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
+                    .buildRetryStrategyConfig(retryTask.getBizType());
 
             RetryTaskExecuteSPI<?> retryTaskExecuteSPI = retryTaskComponent
                     .getTaskListener(retryTask.getBizType());

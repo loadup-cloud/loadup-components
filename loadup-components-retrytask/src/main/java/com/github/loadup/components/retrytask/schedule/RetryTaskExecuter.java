@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.schedule;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,8 @@ package com.github.loadup.components.retrytask.schedule;
  */
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
+import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
-import com.github.loadup.components.retrytask.manager.RetryStrategyManager;
 import com.github.loadup.components.retrytask.manager.RetryTaskExecutor;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.repository.RetryTaskRepository;
@@ -38,15 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * retry task executer
- *
- * 
- * 
  */
 @Component
 @Slf4j
@@ -62,7 +56,7 @@ public class RetryTaskExecuter {
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyManager retryStrategyManager;
+    private RetryStrategyFactory retryStrategyFactory;
 
     /**
      * the factory of transaction template
@@ -109,25 +103,9 @@ public class RetryTaskExecuter {
 
         RetryTask retryTask = null;
 
-        RetryStrategyConfig retryStrategyConfig = retryStrategyManager.getRetryStrategy(bizType);
+        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(bizType);
 
-        if (retryStrategyConfig.isNeedTransaction()) {
-
-            TransactionTemplate transactionTemplate = transactionTemplateFactory
-                    .obtainTemplate(bizType);
-
-            retryTask = transactionTemplate.execute(new TransactionCallback<RetryTask>() {
-
-                @Override
-                public RetryTask doInTransaction(TransactionStatus status) {
-
-                    return doBiz(bizType, bizId, true);
-                }
-            });
-        } else {
-
-            retryTask = doBiz(bizType, bizId, false);
-        }
+        retryTask = doBiz(bizType, bizId, false);
 
         return retryTask;
     }
@@ -186,8 +164,8 @@ public class RetryTaskExecuter {
 
             try {
                 // retry next time
-                RetryStrategyConfig retryStrategyConfig = retryStrategyManager
-                        .getRetryStrategy(retryTaskNeedUpdate.getBizType());
+                RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
+                        .buildRetryStrategyConfig(retryTaskNeedUpdate.getBizType());
                 RetryStrategyUtil.updateRetryTaskByStrategy(retryTaskNeedUpdate,
                         retryStrategyConfig);
                 retryTaskRepository.update(retryTaskNeedUpdate);

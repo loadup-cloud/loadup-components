@@ -1,9 +1,8 @@
-
-package com.github.loadup.components.retrytask.manager;
+package com.github.loadup.components.retrytask;
 
 /*-
  * #%L
- * loadup-components-retrytask
+ * loadup-components-ip
  * %%
  * Copyright (C) 2022 - 2023 loadup_cloud
  * %%
@@ -27,45 +26,14 @@ package com.github.loadup.components.retrytask.manager;
  * #L%
  */
 
-import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/**
- * retry strategy manager
- *
- * 
- * 
- */
-@Component
-@Slf4j
-public class RetryStrategyManager {
+@SpringBootApplication
+public class TestingWebApplication {
 
-
-    /** the factory of retry strategy */
-    @Autowired
-    private RetryStrategyFactory retryStrategyFactory;
-
-    /**
-     * get retry strategy
-     *
-     * @param  bizType bizType
-     * @return retryStrategyConfig
-     */
-    public RetryStrategyConfig getRetryStrategy(String bizType) {
-
-        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
-            .obtainRetryStrategyConfig(bizType);
-
-        if (null == retryStrategyConfig) {
-            log.warn( "the bizType does not match the  retryStrategyConfig. bizType=",
-                bizType, ",retryStrategyConfig=", retryStrategyConfig);
-        }
-
-        return retryStrategyConfig;
+    public static void main(String[] args) {
+        SpringApplication.run(TestingWebApplication.class, args);
     }
-
 }
