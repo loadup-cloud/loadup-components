@@ -1,11 +1,13 @@
 package com.github.loadup.components.retrytask.test;
 
+import com.github.loadup.components.retrytask.annotation.RetryTaskListener;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.model.RetryTaskExecuteResult;
 import com.github.loadup.components.retrytask.spi.RetryTaskExecuteSPI;
 import org.springframework.stereotype.Component;
 
 @Component("demo1Listener")
+@RetryTaskListener(taskType = "DEMO1")
 public class Demo1Listener implements RetryTaskExecuteSPI {
     @Override
     public RetryTaskExecuteResult execute(RetryTask retryTask) {

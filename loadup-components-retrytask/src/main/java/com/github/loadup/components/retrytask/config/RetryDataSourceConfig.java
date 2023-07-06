@@ -30,6 +30,7 @@ import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
+@NoArgsConstructor
 public class RetryDataSourceConfig {
 
     /**
@@ -47,7 +49,6 @@ public class RetryDataSourceConfig {
      * DEFAULT(in default)
      */
     private String bizType = RetryTaskConstants.DEFAULT_BIZ_TYPE;
-
     /**
      * the mode of the relation of business tables and task tables
      *
@@ -55,30 +56,14 @@ public class RetryDataSourceConfig {
      * DIFFERENT(business tables and task tables are in the different database)
      */
     private String dbMode = "SAME";
-
     /**
      * datasource
      */
     private DataSource dataSource;
-    private String     datasourceName;
-
     /**
      * the prefix of table name
      */
     private String tablePrefix;
-
-    /**
-     * the sum of sub databases
-     * only one database(in default)
-     */
-    private int dbNum = 1;
-
-    /**
-     * the sum of sub tables in every database
-     * one table in every database(in default)
-     */
-    private int tableNumPerDb = 1;
-
     /**
      * sql sentence in every database
      *
@@ -86,6 +71,9 @@ public class RetryDataSourceConfig {
      * value: sql sentence
      */
     private Map<String, String> sqlMap;
-    private String              dbType;
+    private String              dbType = "MYSQL";
+    public RetryDataSourceConfig(String bizType) {
+        this.bizType = bizType;
+    }
 
 }

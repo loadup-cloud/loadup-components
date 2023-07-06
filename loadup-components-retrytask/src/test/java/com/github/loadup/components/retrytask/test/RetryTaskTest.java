@@ -33,19 +33,23 @@ import com.github.loadup.components.retrytask.model.RetryTaskRequest;
 import javax.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@ActiveProfiles("remote")
 public class RetryTaskTest {
     @Resource
     RetryComponentService retryComponentService;
 
     @Test
     void testRunTask() throws InterruptedException {
-        RetryTaskRequest req=new RetryTaskRequest();
+        RetryTaskRequest req = new RetryTaskRequest();
         req.setBizType("DEMO1");
-        req.setBizId("1231111111212121212");
+        String bizId = "1231111111212121212";
+        req.setBizId(bizId);
         req.setBizContext("xxx");
         req.setScheduleExecuteType(ScheduleExecuteType.ASYNC);
+        retryComponentService.deleteRetryTask(bizId, "DEMO1");
         RetryTask register = retryComponentService.register(req);
         System.out.println(register);
         Thread.sleep(1000000);

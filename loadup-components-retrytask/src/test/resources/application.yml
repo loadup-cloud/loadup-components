@@ -6,19 +6,12 @@ spring:
     password: Rvu8BVRBLXvywVKRTQ2H
 
 retrytask:
-  dataSourceList:
-    - bizType: DEMO1,DEMO2
-      dbMode: SAME
-      dbType: MYSQL
-      datasourceName: "dataSource"
   strategyList:
     - bizType: DEMO1
       maxLoadNum: 1000
       executeImmediately: true
       ignorePriority: true
-      listenerName: demo1Listener
     - bizType: DEMO2
       maxLoadNum: 1000
       executeImmediately: true
       ignorePriority: true
-      listenerName: demo1Listener
