@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.repository;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.repository;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +36,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -46,17 +44,18 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * jbdc DAO implements
- *
- * 
- * 
  */
 public class JdbcRetryTaskDAO implements RetryTaskDAO {
 
-    /** jdbc template */
+    /**
+     * jdbc template
+     */
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    /** the config of retry task database */
+    /**
+     * the config of retry task database
+     */
     @Autowired
     private RetryDataSourceConfig retryDataSourceConfig;
 
@@ -95,7 +94,7 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
      * @see RetryTaskDAO#lockByBizId(java.lang.String, java.lang.String)
      */
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public RetryTask lockByBizId(String bizId, String bizType) {
 
         String sql = obtainSql(SqlType.SQL_TASK_LOCK_BY_ID);
@@ -105,16 +104,7 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
         RetryTask retryTask = null;
         try {
             retryTask = (RetryTask) namedParameterJdbcTemplate.queryForObject(sql, paramMap,
-                new RowMapper() {
-
-                    @Override
-                    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                        RetryTask retryTask = convertResultSet2RetryTask(rs);
-                        return retryTask;
-                    }
-
-                });
+                    (RowMapper) (rs, rowNum) -> convertResultSet2RetryTask(rs));
         } catch (EmptyResultDataAccessException e) {
             // do nothing.  only catch.
         }
@@ -125,7 +115,7 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
     /**
      * @see RetryTaskDAO#loadByBizId(java.lang.String, java.lang.String)
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public RetryTask loadByBizId(String bizId, String bizType) {
         String sql = obtainSql(SqlType.SQL_TASK_LOAD_BY_ID);
@@ -136,16 +126,7 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
         RetryTask retryTask = null;
         try {
             retryTask = (RetryTask) namedParameterJdbcTemplate.queryForObject(sql, paramMap,
-                new RowMapper() {
-
-                    @Override
-                    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                        RetryTask retryTask = convertResultSet2RetryTask(rs);
-                        return retryTask;
-                    }
-
-                });
+                    (RowMapper) (rs, rowNum) -> convertResultSet2RetryTask(rs));
         } catch (EmptyResultDataAccessException e) {
             // do nothing.  only catch.
         }
@@ -160,7 +141,7 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
     public void delete(String bizId, String bizType) {
 
         String sql = obtainSql(SqlType.SQL_TASK_DELETE);
-        Map<String, String> paramMap = new HashMap<String, String>();
+        Map<String, String> paramMap = new HashMap<>(2);
         paramMap.put("bizId", bizId);
         paramMap.put("bizType", bizType);
         namedParameterJdbcTemplate.update(sql, paramMap);
@@ -171,24 +152,14 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
      */
     @Override
     public List<RetryTask> load(String bizType, int rowNum) {
-        Map<String, Object> paramMap = new HashMap<String, Object>();
+        Map<String, Object> paramMap = new HashMap<>(2);
         paramMap.put("bizType", bizType);
         paramMap.put("rowNum", rowNum);
 
         String sql = obtainSql(SqlType.SQL_TASK_LOAD);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         List<RetryTask> retryTasks = namedParameterJdbcTemplate.query(sql, paramMap,
-            new RowMapper() {
-
-                @Override
-                public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                    RetryTask retryTask = convertResultSet2RetryTask(rs);
-                    return retryTask;
-                }
-
-            });
-
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
         return retryTasks;
     }
 
@@ -198,24 +169,15 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
     @Override
     public List<RetryTask> loadByPriority(String bizType, String priority, int rowNum) {
 
-        Map<String, Object> paramMap = new HashMap<String, Object>();
+        Map<String, Object> paramMap = new HashMap<>(3);
         paramMap.put("priority", priority);
         paramMap.put("bizType", bizType);
         paramMap.put("rowNum", rowNum);
 
         String sql = obtainSql(SqlType.SQL_TASK_LOAD_BY_PRIORITY);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         List<RetryTask> retryTasks = namedParameterJdbcTemplate.query(sql, paramMap,
-            new RowMapper() {
-
-                @Override
-                public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                    RetryTask retryTask = convertResultSet2RetryTask(rs);
-                    return retryTask;
-                }
-
-            });
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
 
         return retryTasks;
     }
@@ -225,24 +187,15 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
      */
     @Override
     public List<RetryTask> loadUnuaualTask(String bizType, int extremeRetryTime, int rowNum) {
-        Map<String, Object> paramMap = new HashMap<String, Object>();
+        Map<String, Object> paramMap = new HashMap<>(3);
         paramMap.put("bizType", bizType);
         paramMap.put("extremeRetryTime", extremeRetryTime);
         paramMap.put("rowNum", rowNum);
 
         String unusualSql = obtainSql(SqlType.SQL_TASK_LOAD_UNUSUAL);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         List<RetryTask> unusualRetryTasks = namedParameterJdbcTemplate.query(unusualSql, paramMap,
-            new RowMapper() {
-
-                @Override
-                public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-                    RetryTask retryTask = convertResultSet2RetryTask(rs);
-                    return retryTask;
-                }
-
-            });
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
 
         return unusualRetryTasks;
     }
@@ -250,8 +203,8 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
     /**
      * convert sql result to retry task
      *
-     * @param rs  sql result
-     * @return     retry task
+     * @param rs sql result
+     * @return retry task
      * @throws SQLException SQLException
      */
     private RetryTask convertResultSet2RetryTask(ResultSet rs) throws SQLException {
@@ -265,10 +218,9 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
         retryTask.setNextExecuteTime(ResultSetUtil.obtainDateValue(rs, "next_execute_time"));
         retryTask.setMaxExecuteTimes(rs.getInt("max_execute_times"));
         retryTask.setUpToMaxExecuteTimesFlag(
-            StringUtils.equalsIgnoreCase(rs.getString("up_to_max_execute_times_flag"), "T") ? true
-                : false);
+                StringUtils.equalsIgnoreCase(rs.getString("up_to_max_execute_times_flag"), "T"));
         retryTask.setProcessingFlag(
-                StringUtils.equalsIgnoreCase(rs.getString("processing_flag"), "T") ? true : false);
+                StringUtils.equalsIgnoreCase(rs.getString("processing_flag"), "T"));
         retryTask.setBizContext(rs.getString("biz_context"));
         retryTask.setGmtCreate(ResultSetUtil.obtainDateValue(rs, "gmt_create"));
         retryTask.setGmtModified(ResultSetUtil.obtainDateValue(rs, "gmt_modified"));
@@ -282,26 +234,25 @@ public class JdbcRetryTaskDAO implements RetryTaskDAO {
      * 获取sql
      *
      * @param sqlType sql type
-     * @return  sql sentence
+     * @return sql sentence
      */
     private String obtainSql(SqlType sqlType) {
 
         String sqlKey = retryDataSourceConfig.getDbType() + RetryTaskConstants.INTERVAL_CHAR
-                        + sqlType.getCode();
-        String sql = retryDataSourceConfig.getSqlMap().get(sqlKey);
+                + sqlType.getCode();
 
-        return sql;
+        return retryDataSourceConfig.getSqlMap().get(sqlKey);
     }
 
     /**
      * 构建insert的参数
      *
      * @param retryTask retryTask
-     * @return  map
+     * @return map
      */
     private Map<String, Object> convter2InsertMap(RetryTask retryTask) {
 
-        Map<String, Object> resultMap = new HashMap<String, Object>();
+        Map<String, Object> resultMap = new HashMap<>();
 
         resultMap.put("taskId", retryTask.getTaskId());
         resultMap.put("bizId", retryTask.getBizId());
