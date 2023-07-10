@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.manager;
  * #L%
  */
 
+import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Component;
  * the executer of executing the task synchronized
  */
 @Component
-
 public class SyncTaskStrategyExecutor implements TaskStrategyExecutor {
 
     /**
@@ -42,6 +42,11 @@ public class SyncTaskStrategyExecutor implements TaskStrategyExecutor {
      */
     @Autowired
     private RetryTaskExecutor retryTaskExecutor;
+
+    @Override
+    public ScheduleExecuteType getExecuteType() {
+        return ScheduleExecuteType.SYNC;
+    }
 
     /**
      * @see TaskExecutor#execute(RetryTask)

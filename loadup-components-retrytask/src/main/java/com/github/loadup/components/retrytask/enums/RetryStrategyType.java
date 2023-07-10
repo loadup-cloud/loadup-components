@@ -73,18 +73,7 @@ public enum RetryStrategyType implements IEnum {
      * 第一次失败后，将依次等待1s；6s(1+5)；11(1+5+5)s；16(1+5+5+5)s；...
      */
     INCREMENTING_WAIT_STRATEGY("INCREMENTING_WAIT_STRATEGY", "User can define interval"),
-    /**
-     * ExceptionWaitStrategy
-     * 异常等待策略
-     * 根据所发生的异常指定重试的等待时长；如果异常不匹配，则等待时长为0；
-     */
-    EXCEPTION_WAIT_STRATEGY("EXCEPTION_WAIT_STRATEGY", "User can define interval"),
-    /**
-     * CompositeWaitStrategy
-     * 复合等待策略
-     * 复合等待策略；如果所执行的程序满足一个或多个等待策略，那么等待时间为所有等待策略时间的总和。
-     */
-    COMPOSITE_WAIT_STRATEGY("COMPOSITE_WAIT_STRATEGY", "User can define interval"),
+
     ;
 
     /**

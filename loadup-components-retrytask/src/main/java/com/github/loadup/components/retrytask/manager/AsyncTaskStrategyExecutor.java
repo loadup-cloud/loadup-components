@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.manager;
  * #L%
  */
 
+import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -48,6 +49,11 @@ public class AsyncTaskStrategyExecutor implements TaskStrategyExecutor {
      */
     @Autowired
     private ThreadPoolTaskExecutor retryTaskExecutorThreadPool;
+
+    @Override
+    public ScheduleExecuteType getExecuteType() {
+        return ScheduleExecuteType.ASYNC;
+    }
 
     /**
      * @see TaskExecutor#execute(RetryTask)

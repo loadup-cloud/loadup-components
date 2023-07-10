@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.enums;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.enums;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,54 +26,31 @@ package com.github.loadup.components.retrytask.enums;
  * #L%
  */
 
+import com.github.loadup.capability.common.enums.IEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * The type of database
- * 
- * 
- * 
  */
-public enum DbType {
+@Getter
+@AllArgsConstructor
+public enum DbType implements IEnum {
 
-    /** mysql */
+    /**
+     * mysql
+     */
     MYSQL("MYSQL", "Mysql"),
+    ;
 
-    /** oceanbase */
-    OB("OB", "Oceanbase"), ;
-
-    /** code */
+    /**
+     * code
+     */
     private String code;
 
-    /** description */
+    /**
+     * description
+     */
     private String description;
 
-    /**
-     * construct method
-     * 
-     * @param code          code
-     * @param description   description
-     */
-    private DbType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-
-    // ~~~ getters and setters
-
-    /**
-     * Getter method for property <tt>code</tt>.
-     * 
-     * @return property value of code
-     */
-    public String getCode() {
-        return code;
-    }
-
-    /**
-     * Getter method for property <tt>description</tt>.
-     * 
-     * @return property value of description
-     */
-    public String getDescription() {
-        return description;
-    }
 }

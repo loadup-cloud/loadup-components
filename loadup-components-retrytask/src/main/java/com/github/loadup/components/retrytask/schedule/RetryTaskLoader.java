@@ -27,7 +27,7 @@ package com.github.loadup.components.retrytask.schedule;
  */
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.enums.TaskPriorityEnum;
 import com.github.loadup.components.retrytask.model.RetryTask;
@@ -56,7 +56,7 @@ public class RetryTaskLoader {
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyFactory retryStrategyFactory;
+    private RetryTaskFactory retryTaskFactory;
 
     /**
      * load items
@@ -101,7 +101,7 @@ public class RetryTaskLoader {
 
         List<RetryTask> resultTasks = new ArrayList<>();
 
-        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(bizType);
+        RetryStrategyConfig retryStrategyConfig = retryTaskFactory.buildRetryStrategyConfig(bizType);
 
         if (retryStrategyConfig == null) {
             return resultTasks;

@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.enums;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.enums;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,72 +26,66 @@ package com.github.loadup.components.retrytask.enums;
  * #L%
  */
 
+import com.github.loadup.capability.common.enums.IEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * The type of sql
- * 
- * 
- * 
  */
-public enum SqlType {
+@Getter
+@AllArgsConstructor
+public enum SqlType implements IEnum {
 
-    /** insert the task */
+    /**
+     * insert the task
+     */
     SQL_TASK_INSERT("SQL_TASK_INSERT", "insert the task"),
 
-    /** update the task */
+    /**
+     * update the task
+     */
     SQL_TASK_UPDATE("SQL_TASK_UPDATE", "update the task"),
 
-    /** load the task */
+    /**
+     * load the task
+     */
     SQL_TASK_LOAD("SQL_TASK_LOAD", "load the task"),
 
-    /** load the task for the unusuals */
+    /**
+     * load the task for the unusuals
+     */
     SQL_TASK_LOAD_UNUSUAL("SQL_TASK_LOAD_UNUSUAL", "load the task"),
 
-    /** lock the task by the taskId */
+    /**
+     * lock the task by the taskId
+     */
     SQL_TASK_LOCK_BY_ID("SQL_TASK_LOCK_BY_ID", "lock the task by the taskId"),
 
-    /** load the task by the taskId */
+    /**
+     * load the task by the taskId
+     */
     SQL_TASK_LOAD_BY_ID("SQL_TASK_LOAD_BY_ID", "load the task by the taskId"),
 
-    /** delete the task */
+    /**
+     * delete the task
+     */
     SQL_TASK_DELETE("SQL_TASK_DELETE", "delete the task"),
 
-    /** load the task by priority */
-    SQL_TASK_LOAD_BY_PRIORITY("SQL_TASK_LOAD_BY_PRIORITY", "load the task by priority"), ;
+    /**
+     * load the task by priority
+     */
+    SQL_TASK_LOAD_BY_PRIORITY("SQL_TASK_LOAD_BY_PRIORITY", "load the task by priority"),
+    ;
 
-    /** code */
+    /**
+     * code
+     */
     private String code;
 
-    /** description */
+    /**
+     * description
+     */
     private String description;
 
-    /**
-     * construct method
-     * 
-     * @param code          code
-     * @param description   description
-     */
-    private SqlType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-
-    // ~~~ getters and setters
-
-    /**
-     * Getter method for property <tt>code</tt>.
-     * 
-     * @return property value of code
-     */
-    public String getCode() {
-        return code;
-    }
-
-    /**
-     * Getter method for property <tt>description</tt>.
-     * 
-     * @return property value of description
-     */
-    public String getDescription() {
-        return description;
-    }
 }

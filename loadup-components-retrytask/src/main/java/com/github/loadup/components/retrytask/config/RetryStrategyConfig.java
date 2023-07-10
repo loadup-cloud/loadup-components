@@ -26,9 +26,10 @@ package com.github.loadup.components.retrytask.config;
  * #L%
  */
 
+import com.github.loadup.capability.common.enums.TimeUnitEnum;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.enums.RetryStrategyType;
-import com.github.loadup.components.retrytask.spi.RetryTaskExecuteSPI;
+import com.github.loadup.components.retrytask.spi.RetryTaskExecutorSpi;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,7 @@ public class RetryStrategyConfig {
      * the max retry task sum in every schedule. If user define more than one retry strategy , the sum of loading task in shedule is the
      * minimum one
      */
-    private int maxLoadNum;
+    private int maxLoadNum = 1000;
 
     /**
      * the type of retry strategy
@@ -70,10 +71,10 @@ public class RetryStrategyConfig {
 
     /**
      * the value unit of retry strategy
-     * S(SECOND),U(MINUTE),H(HOUR),D(DAY)
+     * S(SECOND),I(MINUTE),H(HOUR),D(DAY)
      * default is MINUTE
      */
-    private String strategyValueUnit = "M";
+    private String strategyValueUnit = TimeUnitEnum.MINUTE.getCode();
 
     /**
      * the maximum of the sum of execution
@@ -96,19 +97,18 @@ public class RetryStrategyConfig {
     /**
      * is execute immediately
      */
-    private boolean isExecuteImmediately;
+    private boolean isExecuteImmediately = true;
 
     /**
      * is ignore priority
      */
-    private boolean isIgnorePriority;
+    private boolean isIgnorePriority=true;
 
     /**
      * 这个表示单次任务执行时间限制（如果单次任务执行超时，则终止执行当前任务）；
      */
     private String attemptTimeLimiter;
 
-    private RetryTaskExecuteSPI<Object> listener;
-    private String                      listenerName;
+    private RetryTaskExecutorSpi executor;
 
 }

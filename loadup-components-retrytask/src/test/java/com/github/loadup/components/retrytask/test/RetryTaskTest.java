@@ -27,32 +27,79 @@ package com.github.loadup.components.retrytask.test;
  */
 
 import com.github.loadup.components.retrytask.RetryComponentService;
-import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.model.RetryTaskRequest;
+import com.github.loadup.components.retrytask.repository.RetryTaskRepository;
+import java.util.Date;
+import java.util.UUID;
 import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("remote")
+@Slf4j
+//@ActiveProfiles("remote")
 public class RetryTaskTest {
     @Resource
     RetryComponentService retryComponentService;
+    @Resource
+    RetryTaskRepository   retryTaskRepository;
 
     @Test
-    void testRunTask() throws InterruptedException {
-        RetryTaskRequest req = new RetryTaskRequest();
-        req.setBizType("DEMO1");
-        String bizId = "1231111111212121212";
-        req.setBizId(bizId);
-        req.setBizContext("xxx");
-        req.setScheduleExecuteType(ScheduleExecuteType.ASYNC);
-        retryComponentService.deleteRetryTask(bizId, "DEMO1");
-        RetryTask register = retryComponentService.register(req);
-        System.out.println(register);
-        Thread.sleep(1000000);
+    void testExponentialTask() throws InterruptedException {
+        // 0,20,40,80,160,320
+        String bizId = UUID.randomUUID().toString();
+        String bizType = "EXPONENTIAL";
+        try {
+            RetryTaskRequest req = new RetryTaskRequest();
+            req.setBizType(bizType);
+            req.setBizId(bizId);
+            req.setBizContext("xxx");
+            retryComponentService.deleteRetryTask(bizId, bizType);
+            Date now = new Date();
+            RetryTask register = retryComponentService.register(req);
+            log.info("register={}", register);
+            //15s 注册立即执行一次
+            Thread.sleep(15 * 1000);
+            Assertions.assertTrue(register.getExecutedTimes() == 1);
+            assertDateEquals(DateUtils.addSeconds(now, 20), register.getNextExecuteTime());
+            //
+            ////75s 自动执行一次
+            //Thread.sleep(40 * 1000);
+            //RetryTask db = retryTaskRepository.loadByBizId(bizId, bizType);
+            //log.info("75s={}", register);
+            //Assertions.assertTrue(db.getExecutedTimes() == 2);
+            //assertDateEquals(DateUtils.addSeconds(now, 160), db.getNextExecuteTime());
+            //
+            ////150s 自动执行2次
+            //Thread.sleep(80 * 1000);
+            //db = retryTaskRepository.loadByBizId(bizId, bizType);
+            //log.info("150s={}", register);
+            //Assertions.assertTrue(db.getExecutedTimes() == 3);
+            //assertDateEquals(DateUtils.addSeconds(now, 320), db.getNextExecuteTime());
+
+        } finally {
+            // retryTaskRepository.delete(bizId, bizType);
+        }
+
+    }
+
+    String formatDate(Date date) {
+        return DateFormatUtils.format(date, "yyyyMMddHHmmss");
+    }
+
+    boolean assertDateEquals(Date expected, Date actual) {
+        long i = Long.parseLong(formatDate(expected)) - Long.parseLong(formatDate(actual));
+        return Math.abs(i) <= 1000;
+    }
+
+    boolean assertDateEquals(Date expected, Date actual, long limit) {
+        long i = Long.parseLong(formatDate(expected)) - Long.parseLong(formatDate(actual));
+        return Math.abs(i) <= limit;
     }
 
 }

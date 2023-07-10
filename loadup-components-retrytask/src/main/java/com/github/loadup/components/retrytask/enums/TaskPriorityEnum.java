@@ -1,4 +1,3 @@
-
 package com.github.loadup.components.retrytask.enums;
 
 /*-
@@ -13,10 +12,10 @@ package com.github.loadup.components.retrytask.enums;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,71 +26,36 @@ package com.github.loadup.components.retrytask.enums;
  * #L%
  */
 
+import com.github.loadup.capability.common.enums.IEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Task Priority Enum
- * 
- * 
- * 
  */
-public enum TaskPriorityEnum {
+@Getter
+@AllArgsConstructor
+public enum TaskPriorityEnum implements IEnum {
 
-    /** High level */
+    /**
+     * High level
+     */
     H("H", "High level"),
 
-    /** Low level */
-    L("L", "Low level"), ;
+    /**
+     * Low level
+     */
+    L("L", "Low level"),
+    ;
 
-    /** code */
+    /**
+     * code
+     */
     private String code;
 
-    /** description */
+    /**
+     * description
+     */
     private String description;
-
-    /**
-     * construct method
-     * 
-     * @param code          code
-     * @param description   description
-     */
-    private TaskPriorityEnum(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-
-    /**
-     * Getter method for property <tt>code</tt>.
-     * 
-     * @return property value of code
-     */
-    public String getCode() {
-        return code;
-    }
-
-    /**
-     * Setter method for property <tt>code</tt>.
-     * 
-     * @param code value to be assigned to property code
-     */
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    /**
-     * Getter method for property <tt>description</tt>.
-     * 
-     * @return property value of description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Setter method for property <tt>description</tt>.
-     * 
-     * @param description value to be assigned to property description
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
 }

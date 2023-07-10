@@ -26,15 +26,23 @@ package com.github.loadup.components.retrytask.repository;
  * #L%
  */
 
-import com.github.loadup.components.retrytask.config.RetryDataSourceConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
+import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
+import com.github.loadup.components.retrytask.enums.SqlType;
 import com.github.loadup.components.retrytask.model.RetryTask;
+import com.github.loadup.components.retrytask.utils.ResultSetUtil;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,23 +53,26 @@ import org.springframework.stereotype.Component;
 public class RetryTaskRepositoryImpl implements RetryTaskRepository {
 
     /**
-     * retry task DAO collection, key: bizType
-     */
-    private Map<String, RetryTaskDAO> retryTaskDAOs = new HashMap<String, RetryTaskDAO>();
-    /**
      * the factory of retry strategy
      */
     @Autowired
-    private RetryStrategyFactory      retryStrategyFactory;
+    private RetryTaskFactory           retryTaskFactory;
+    @Resource
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    private String finSql(SqlType sqlType) {
+        String sqlKey = retryTaskFactory.getDbType() + RetryTaskConstants.INTERVAL_CHAR + sqlType.getCode();
+        return retryTaskFactory.getSqlMap().get(sqlKey);
+    }
 
     /**
      * @see RetryTaskRepository#insert(RetryTask)
      */
     @Override
     public void insert(RetryTask retryTask) {
-
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(retryTask.getBizType());
-        retryTaskDAO.insert(retryTask);
+        String sql = finSql(SqlType.SQL_TASK_INSERT);
+        Map<String, Object> paramMap = convter2InsertMap(retryTask);
+        namedParameterJdbcTemplate.update(sql, paramMap);
     }
 
     /**
@@ -69,9 +80,19 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
      */
     @Override
     public RetryTask lockByBizId(String bizId, String bizType) {
+        String sql = finSql(SqlType.SQL_TASK_LOCK_BY_ID);
+        Map<String, String> paramMap = new HashMap<>(2);
+        paramMap.put("bizId", bizId);
+        paramMap.put("bizType", bizType);
+        RetryTask retryTask = null;
+        try {
+            retryTask = (RetryTask) namedParameterJdbcTemplate.queryForObject(sql, paramMap,
+                    (RowMapper) (rs, rowNum) -> convertResultSet2RetryTask(rs));
+        } catch (EmptyResultDataAccessException e) {
+            // do nothing.  only catch.
+        }
 
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        return retryTaskDAO.lockByBizId(bizId, bizType);
+        return retryTask;
     }
 
     /**
@@ -79,9 +100,20 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
      */
     @Override
     public RetryTask loadByBizId(String bizId, String bizType) {
+        String sql = finSql(SqlType.SQL_TASK_LOAD_BY_ID);
+        Map<String, String> paramMap = new HashMap<String, String>();
+        paramMap.put("bizId", bizId);
+        paramMap.put("bizType", bizType);
 
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        return retryTaskDAO.loadByBizId(bizId, bizType);
+        RetryTask retryTask = null;
+        try {
+            retryTask = (RetryTask) namedParameterJdbcTemplate.queryForObject(sql, paramMap,
+                    (RowMapper) (rs, rowNum) -> convertResultSet2RetryTask(rs));
+        } catch (EmptyResultDataAccessException e) {
+            // do nothing.  only catch.
+        }
+
+        return retryTask;
     }
 
     /**
@@ -90,8 +122,11 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
     @Override
     public void delete(String bizId, String bizType) {
 
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        retryTaskDAO.delete(bizId, bizType);
+        String sql = finSql(SqlType.SQL_TASK_DELETE);
+        Map<String, String> paramMap = new HashMap<>(2);
+        paramMap.put("bizId", bizId);
+        paramMap.put("bizType", bizType);
+        namedParameterJdbcTemplate.update(sql, paramMap);
     }
 
     /**
@@ -99,63 +134,110 @@ public class RetryTaskRepositoryImpl implements RetryTaskRepository {
      */
     @Override
     public void update(RetryTask retryTask) {
-
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(retryTask.getBizType());
-        retryTaskDAO.update(retryTask);
+        String sql = finSql(SqlType.SQL_TASK_UPDATE);
+        Map<String, Object> paramMap = convter2InsertMap(retryTask);
+        namedParameterJdbcTemplate.update(sql, paramMap);
     }
 
     @Override
     public List<RetryTask> load(String bizType, int rowNum) {
+        Map<String, Object> paramMap = new HashMap<>(2);
+        paramMap.put("bizType", bizType);
+        paramMap.put("rowNum", rowNum);
 
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        return retryTaskDAO.load(bizType, rowNum);
+        String sql = finSql(SqlType.SQL_TASK_LOAD);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        List<RetryTask> retryTasks = namedParameterJdbcTemplate.query(sql, paramMap,
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
+        return retryTasks;
     }
 
     @Override
     public List<RetryTask> loadByPriority(String bizType, String priority, int rowNum) {
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        return retryTaskDAO.loadByPriority(bizType, priority, rowNum);
+
+        Map<String, Object> paramMap = new HashMap<>(3);
+        paramMap.put("priority", priority);
+        paramMap.put("bizType", bizType);
+        paramMap.put("rowNum", rowNum);
+
+        String sql = finSql(SqlType.SQL_TASK_LOAD_BY_PRIORITY);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        List<RetryTask> retryTasks = namedParameterJdbcTemplate.query(sql, paramMap,
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
+
+        return retryTasks;
     }
 
     @Override
     public List<RetryTask> loadUnuaualTask(String bizType, int extremeRetryTime, int rowNum) {
-        RetryTaskDAO retryTaskDAO = obtainRetryTaskDAO(bizType);
-        return retryTaskDAO.loadUnuaualTask(bizType, extremeRetryTime, rowNum);
+        Map<String, Object> paramMap = new HashMap<>(3);
+        paramMap.put("bizType", bizType);
+        paramMap.put("extremeRetryTime", extremeRetryTime);
+        paramMap.put("rowNum", rowNum);
+
+        String unusualSql = finSql(SqlType.SQL_TASK_LOAD_UNUSUAL);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        List<RetryTask> unusualRetryTasks = namedParameterJdbcTemplate.query(unusualSql, paramMap,
+                (RowMapper) (rs, rowNum1) -> convertResultSet2RetryTask(rs));
+
+        return unusualRetryTasks;
     }
 
     /**
-     * obtain the RetryTaskDAO by bizType
+     * 构建insert的参数
      *
-     * @param bizType business type
-     * @return RetryTaskDAO
+     * @param retryTask retryTask
+     * @return map
      */
-    private RetryTaskDAO obtainRetryTaskDAO(String bizType) {
+    private Map<String, Object> convter2InsertMap(RetryTask retryTask) {
 
-        if (retryTaskDAOs.get(bizType) != null) {
-            return retryTaskDAOs.get(bizType);
-        }
+        Map<String, Object> resultMap = new HashMap<>();
 
-        synchronized (this) {
+        resultMap.put("taskId", retryTask.getTaskId());
+        resultMap.put("bizId", retryTask.getBizId());
+        resultMap.put("bizType", retryTask.getBizType());
+        resultMap.put("executedTimes", retryTask.getExecutedTimes());
+        resultMap.put("nextExecuteTime", retryTask.getNextExecuteTime());
+        resultMap.put("maxExecuteTimes", retryTask.getMaxExecuteTimes());
+        resultMap.put("upToMaxExecuteTimesFlag", retryTask.isUpToMaxExecuteTimesFlag() ? "T" : "F");
+        resultMap.put("processingFlag", retryTask.isProcessingFlag() ? "T" : "F");
+        resultMap.put("bizContext", StringUtils.defaultIfBlank(retryTask.getBizContext(), ""));
+        resultMap.put("gmtCreate", retryTask.getGmtCreate());
+        resultMap.put("gmtModified", retryTask.getGmtModified());
+        resultMap.put("priority", StringUtils.defaultIfBlank(retryTask.getPriority(), ""));
+        resultMap.put("suspended", retryTask.isSuspended() ? "T" : "F");
 
-            if (retryTaskDAOs.get(bizType) != null) {
-                return retryTaskDAOs.get(bizType);
-            }
-            RetryDataSourceConfig retryDataSourceConfig = retryStrategyFactory.buildRetryDataSourceConfig(bizType);
-            RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(bizType);
+        return resultMap;
+    }
 
-            if (retryDataSourceConfig == null || retryStrategyConfig == null) {
-                log.warn("the bizType does not match the retryDataSourceConfig and retryStrategyConfig. bizType=", bizType,
-                        ",retryStrategyConfig=", retryStrategyConfig);
-                throw new RuntimeException("the bizType does not match the retryDataSourceConfig and retryStrategyConfig");
-            }
+    /**
+     * convert sql result to retry task
+     *
+     * @param rs sql result
+     * @return retry task
+     * @throws SQLException SQLException
+     */
+    private RetryTask convertResultSet2RetryTask(ResultSet rs) throws SQLException {
 
-            //  构建retry task dao
-            RetryTaskDAO jdbcRetryTaskDAO = new JdbcRetryTaskDAO(retryDataSourceConfig);
+        RetryTask retryTask = new RetryTask();
 
-            // 将动态代理类存放到map中
-            retryTaskDAOs.put(bizType, jdbcRetryTaskDAO);
-            return jdbcRetryTaskDAO;
-        }
+        retryTask.setTaskId(rs.getString("task_id"));
+        retryTask.setBizType(rs.getString("biz_type"));
+        retryTask.setBizId(rs.getString("biz_id"));
+        retryTask.setExecutedTimes(rs.getInt("executed_times"));
+        retryTask.setNextExecuteTime(ResultSetUtil.obtainDateValue(rs, "next_execute_time"));
+        retryTask.setMaxExecuteTimes(rs.getInt("max_execute_times"));
+        retryTask.setUpToMaxExecuteTimesFlag(
+                StringUtils.equalsIgnoreCase(rs.getString("up_to_max_execute_times_flag"), "T"));
+        retryTask.setProcessingFlag(
+                StringUtils.equalsIgnoreCase(rs.getString("processing_flag"), "T"));
+        retryTask.setBizContext(rs.getString("biz_context"));
+        retryTask.setGmtCreate(ResultSetUtil.obtainDateValue(rs, "gmt_create"));
+        retryTask.setGmtModified(ResultSetUtil.obtainDateValue(rs, "gmt_modified"));
+        retryTask.setPriority(rs.getString("priority"));
+        retryTask.setSuspended(
+                StringUtils.equalsIgnoreCase(rs.getString("suspended"), "T"));
+        return retryTask;
     }
 
 }

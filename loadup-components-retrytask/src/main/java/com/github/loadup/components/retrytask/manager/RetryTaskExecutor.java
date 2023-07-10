@@ -27,14 +27,12 @@ package com.github.loadup.components.retrytask.manager;
  */
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
-import com.github.loadup.components.retrytask.config.RetryTaskComponent;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
 import com.github.loadup.components.retrytask.constant.RetryTaskLoggerConstants;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.model.RetryTaskExecuteResult;
 import com.github.loadup.components.retrytask.repository.RetryTaskRepository;
-import com.github.loadup.components.retrytask.spi.RetryTaskExecuteSPI;
-import com.github.loadup.components.retrytask.utils.ContextUtil;
+import com.github.loadup.components.retrytask.spi.RetryTaskExecutorSpi;
 import com.github.loadup.components.retrytask.utils.RetryStrategyUtil;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +50,7 @@ public class RetryTaskExecutor implements TaskExecutor {
     /**
      * execute logger
      */
-    private final static Logger EXE_DIGEST_LOGGER = LoggerFactory
-            .getLogger(RetryTaskLoggerConstants.EXECUTE_DIGEST_NAME);
+    private final static Logger EXE_DIGEST_LOGGER = LoggerFactory.getLogger(RetryTaskLoggerConstants.EXECUTE_DIGEST_NAME);
 
     /**
      * the repository of retry task
@@ -65,13 +62,7 @@ public class RetryTaskExecutor implements TaskExecutor {
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyFactory retryStrategyFactory;
-
-    /**
-     * retry task component
-     */
-    @Autowired
-    private RetryTaskComponent retryTaskComponent;
+    private RetryTaskFactory retryTaskFactory;
 
     /**
      * @see TaskExecutor#execute(RetryTask)
@@ -79,17 +70,13 @@ public class RetryTaskExecutor implements TaskExecutor {
     @Override
     public void execute(RetryTask retryTask) {
 
-        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(retryTask
-                .getBizType());
+        RetryStrategyConfig retryStrategyConfig = retryTaskFactory.buildRetryStrategyConfig(retryTask.getBizType());
 
         try {
-
             plainExecute(retryTask);
-
         } catch (Exception e) {
 
-            log.error("RetryTaskExecutor execute system error,retryTask=",
-                    retryTask);
+            log.error("RetryTaskExecutor execute system error,retryTask=", retryTask);
             // retry next time
             RetryStrategyUtil.updateRetryTaskByStrategy(retryTask, retryStrategyConfig);
             retryTaskRepository.update(retryTask);
@@ -104,23 +91,19 @@ public class RetryTaskExecutor implements TaskExecutor {
     public void plainExecute(RetryTask retryTask) {
 
         long startTime = System.currentTimeMillis();
-        RetryTaskExecuteResult<?> result = null;
+        RetryTaskExecuteResult result = null;
 
         try {
 
-            RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
-                    .buildRetryStrategyConfig(retryTask.getBizType());
+            RetryStrategyConfig retryStrategyConfig = retryTaskFactory.buildRetryStrategyConfig(retryTask.getBizType());
 
-            RetryTaskExecuteSPI<?> retryTaskExecuteSPI = retryStrategyConfig.getListener();
+            RetryTaskExecutorSpi retryTaskExecutorSpi = retryStrategyConfig.getExecutor();
 
             // prepose handler
             beforeExecute(retryTask);
 
-            //init context
-            ContextUtil.contructContextFromTask(retryTask);
-
             // execute the SPI callback service
-            result = retryTaskExecuteSPI.execute(retryTask);
+            result = retryTaskExecutorSpi.execute(retryTask);
 
             // process the result
             processResult(result, retryTask, retryStrategyConfig);
@@ -147,14 +130,12 @@ public class RetryTaskExecutor implements TaskExecutor {
      * @param startTime     execute start time
      * @return digest
      */
-    private String constructExecuteDigest(RetryTask retryTask,
-            RetryTaskExecuteResult<?> executeResult, long startTime) {
+    private String constructExecuteDigest(RetryTask retryTask, RetryTaskExecuteResult executeResult, long startTime) {
 
         StringBuffer digest = new StringBuffer();
         long elapseTime = System.currentTimeMillis() - startTime;
-        digest.append(retryTask.getBizId()).append(',').append(retryTask.getTaskId()).append(',')
-                .append(retryTask.getBizType()).append(',').append(retryTask.getExecutedTimes())
-                .append(',').append(executeResult != null && executeResult.isSuccess()).append(',')
+        digest.append(retryTask.getBizId()).append(',').append(retryTask.getTaskId()).append(',').append(retryTask.getBizType()).append(',')
+                .append(retryTask.getExecutedTimes()).append(',').append(executeResult != null && executeResult.isSuccess()).append(',')
                 .append(elapseTime).append("ms");
         return digest.toString();
     }
@@ -166,14 +147,12 @@ public class RetryTaskExecutor implements TaskExecutor {
      * @param retryTask           retry task
      * @param retryStrategyConfig config of retry strategy
      */
-    private void processResult(RetryTaskExecuteResult<?> result, RetryTask retryTask,
-            RetryStrategyConfig retryStrategyConfig) {
+    private void processResult(RetryTaskExecuteResult result, RetryTask retryTask, RetryStrategyConfig retryStrategyConfig) {
 
         // the task is processing asynchronized, we need do nothing
         if (result.isProcessing()) {
             return;
         }
-
         if (result.isSuccess()) {
             // delete the task
             retryTaskRepository.delete(retryTask.getBizId(), retryTask.getBizType());
@@ -190,24 +169,10 @@ public class RetryTaskExecutor implements TaskExecutor {
      * @param retryTask retryTask
      */
     private void beforeExecute(RetryTask retryTask) {
-
-        //whether exist the tracer context
-        //if (AbstractLogContext.get() == null) {
-        ////construct an empty LogContext, avoid exception：No tracer context found in current thread context.
-        //try {
-        //    DummyContextUtil.createDummyLogContext();
-        //} catch (Exception e) {
-        //    // in this case, we think that we had check AbstractLogContext.get() is null before, so it must not
-        //    // throw Exception, finally we eat the exception.
-        //    LogUtil.error(LOGGER, e, "RetryTaskExecutor create tracer failed");
-        //}
-        //}
-        // 超过NextExecuteTime 执行，打印告警
-        Date today = new Date();
-
         // update the processing flag
+        Date now = new Date();
         retryTask.setProcessingFlag(true);
-        retryTask.setGmtModified(today);
+        retryTask.setGmtModified(now);
         retryTaskRepository.update(retryTask);
     }
 

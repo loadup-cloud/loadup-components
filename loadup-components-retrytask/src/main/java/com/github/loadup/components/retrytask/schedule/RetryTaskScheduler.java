@@ -27,7 +27,7 @@ package com.github.loadup.components.retrytask.schedule;
  */
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -52,9 +52,9 @@ public class RetryTaskScheduler {
     @Resource
     private ThreadPoolTaskExecutor retryTaskLoaderThreadPool;
     @Resource
-    private RetryTaskExecuter      retryTaskExecuter;
+    private RetryTaskExecuter retryTaskExecuter;
     @Autowired
-    private RetryStrategyFactory   retryStrategyFactory;
+    private RetryTaskFactory  retryTaskFactory;
 
     /**
      * trigger retry task by scheduled
@@ -64,9 +64,9 @@ public class RetryTaskScheduler {
     public void triggerRetryTask() {
 
         long startTime = System.currentTimeMillis();
-        log.info("RetryTaskScheduler begin retry.");
+        //log.info("RetryTaskScheduler begin retry.");
         try {
-            Map<String, RetryStrategyConfig> retryStrategyConfigMap = retryStrategyFactory.getRetryStrategyConfigs();
+            Map<String, RetryStrategyConfig> retryStrategyConfigMap = retryTaskFactory.getRetryStrategyConfigs();
             for (String bizType : retryStrategyConfigMap.keySet()) {
                 // load by bizType async
                 retryTaskLoaderThreadPool.execute(() -> {
@@ -79,8 +79,8 @@ public class RetryTaskScheduler {
             }
 
         } finally {
-            long elapseTime = System.currentTimeMillis() - startTime;
-            log.info("RetryTaskScheduler finish retry, elapseTime=" + elapseTime);
+            //long elapseTime = System.currentTimeMillis() - startTime;
+            //log.info("RetryTaskScheduler finish retry, elapseTime=" + elapseTime);
         }
     }
 }

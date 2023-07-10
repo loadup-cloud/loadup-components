@@ -1,13 +1,11 @@
 package com.github.loadup.components.retrytask.core;
 
-import com.github.loadup.capability.common.util.core.StringPool;
-import com.github.loadup.components.retrytask.annotation.RetryTaskListener;
-import com.github.loadup.components.retrytask.config.RetryDataSourceConfig;
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
 import com.github.loadup.components.retrytask.config.RetryTaskConfigProperties;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.enums.DbType;
+import com.github.loadup.components.retrytask.enums.RetryStrategyType;
 import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import com.github.loadup.components.retrytask.enums.SqlType;
 import com.github.loadup.components.retrytask.manager.AsyncTaskStrategyExecutor;
@@ -15,27 +13,30 @@ import com.github.loadup.components.retrytask.manager.DefaultTaskStrategyExecuto
 import com.github.loadup.components.retrytask.manager.SyncTaskStrategyExecutor;
 import com.github.loadup.components.retrytask.manager.TaskStrategyExecutor;
 import com.github.loadup.components.retrytask.manager.TaskStrategyExecutorFactory;
-import com.github.loadup.components.retrytask.spi.RetryTaskExecuteSPI;
+import com.github.loadup.components.retrytask.spi.RetryTaskExecutorSpi;
+import com.github.loadup.components.retrytask.strategy.RetryTaskStrategy;
+import com.github.loadup.components.retrytask.strategy.RetryTaskStrategyFactory;
+import com.github.loadup.components.retrytask.utils.ApplicationContextAwareUtil;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 @Component
 public class RetryTaskEventListener implements ApplicationListener<ApplicationStartedEvent> {
     @Resource
     private RetryTaskConfigProperties   retryTaskConfigProperties;
     @Resource
-    private RetryStrategyFactory        retryStrategyFactory;
+    private RetryTaskFactory            retryTaskFactory;
     @Resource
     private TaskStrategyExecutorFactory taskStrategyExecutorFactory;
+    @Resource
+    private RetryTaskStrategyFactory    retryTaskStrategyFactory;
     @Resource
     private DefaultTaskStrategyExecutor defaultTaskStrategyExecutor;
     @Resource
@@ -48,71 +49,75 @@ public class RetryTaskEventListener implements ApplicationListener<ApplicationSt
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
         init();
-        if (event.getApplicationContext().getParent() == null) {
-            Map<String, Object> beans = event.getApplicationContext().getBeansWithAnnotation(
-                    com.github.loadup.components.retrytask.annotation.RetryTaskListener.class);
-            for (Object bean : beans.values()) {
-                System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + bean == null ? "null" : bean.getClass().getName());
-                RetryTaskListener listener = AnnotationUtils.findAnnotation(bean.getClass(), RetryTaskListener.class);
-                String taskType = listener.taskType();
-                RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(taskType);
-                retryStrategyConfig.setListener((RetryTaskExecuteSPI) bean);
-            }
-            System.err.println("=====ContextRefreshedEvent=====" + event.getSource().getClass().getName());
-        }
     }
 
     public void init() {
-        Map<String, RetryStrategyConfig> retryStrategyConfigs = retryStrategyFactory.getRetryStrategyConfigs();
-        Map<String, RetryDataSourceConfig> retryDataSourceConfigs = retryStrategyFactory.getRetryDataSourceConfigs();
-        retryTaskConfigProperties.getStrategyList().forEach(s -> {
+        //init Strategy
+        initStrategy();
+        //init sql
+        initSqlMap();
+        // init Executor
+        initRetryTaskExecutor();
+        //init wait Strategy
+        initRetryTaskStrategy();
+    }
+
+    private void initStrategy() {
+        Map<String, RetryStrategyConfig> retryStrategyConfigs = retryTaskFactory.getRetryStrategyConfigs();
+        retryTaskConfigProperties.getTaskList().forEach(s -> {
             if (retryStrategyConfigs.containsKey(s.getBizType())) {
                 throw new RuntimeException("retry strategy exist!bizType=" + s.getBizType());
             }
-            //s.setListener((RetryTaskExecuteSPI) ApplicationContextAwareUtil.getBean(s.getListenerName()));
             retryStrategyConfigs.put(s.getBizType(), s);
         });
-        retryStrategyFactory.setRetryStrategyConfigs(retryStrategyConfigs);
+        retryTaskFactory.setRetryStrategyConfigs(retryStrategyConfigs);
+        retryTaskFactory.setDbType(retryTaskConfigProperties.getDbType());
+        retryTaskFactory.setTablePrefix(retryTaskConfigProperties.getTablePrefix());
 
-        List<RetryDataSourceConfig> dataSourceList = retryTaskConfigProperties.getDataSourceList();
-        if (CollectionUtils.isEmpty(dataSourceList)) {
-            dataSourceList.add(new RetryDataSourceConfig("ALL"));
-        }
-        dataSourceList.forEach(s -> {
-            if (StringUtils.equals("ALL", s.getBizType())) {
-                retryStrategyConfigs.keySet().forEach(bizType -> {
-                    RetryDataSourceConfig c = new RetryDataSourceConfig();
-                    c.setBizType(bizType);
-                    c.setDataSource(dataSource);
-                    initSqlMap(c);
-                    retryDataSourceConfigs.put(bizType, c);
-                });
-            } else if (s.getBizType().contains(StringPool.COMMA)) {
-                String[] types = s.getBizType().split(StringPool.COMMA);
-                s.setDataSource(dataSource);
-                initSqlMap(s);
-                for (String type : types) {
-                    retryDataSourceConfigs.put(type, s);
-                }
-            } else {
-                s.setDataSource(dataSource);
-                initSqlMap(s);
-                retryDataSourceConfigs.put(s.getBizType(), s);
+        Map<String, RetryTaskExecutorSpi> beans = ApplicationContextAwareUtil.getApplicationContext().getBeansOfType(
+                RetryTaskExecutorSpi.class);
+        for (RetryTaskExecutorSpi bean : beans.values()) {
+            String taskType = bean.getTaskType();
+            if (StringUtils.isBlank(taskType)) {
+                throw new RuntimeException(bean.getClass().getName() + " RetryTaskExecutor without taskType");
             }
-        });
-        retryStrategyFactory.setRetryDataSourceConfigs(retryDataSourceConfigs);
+            RetryStrategyConfig retryStrategyConfig = retryTaskFactory.buildRetryStrategyConfig(taskType);
+            retryStrategyConfig.setExecutor(bean);
+        }
+    }
 
-        Map<String, TaskStrategyExecutor> taskStrategyExecutorMap = new HashMap<>();
-        taskStrategyExecutorMap.put(ScheduleExecuteType.DEFAULT.getCode(), defaultTaskStrategyExecutor);
-        taskStrategyExecutorMap.put(ScheduleExecuteType.SYNC.getCode(), syncTaskStrategyExecutor);
-        taskStrategyExecutorMap.put(ScheduleExecuteType.ASYNC.getCode(), asyncTaskStrategyExecutor);
-        taskStrategyExecutorFactory.setTaskStrategyExecutors(taskStrategyExecutorMap);
+    private void initRetryTaskExecutor() {
+        Map<String, TaskStrategyExecutor> map = new HashMap<>();
+        Map<String, TaskStrategyExecutor> beans = ApplicationContextAwareUtil.getApplicationContext().getBeansOfType(
+                TaskStrategyExecutor.class);
+        for (TaskStrategyExecutor bean : beans.values()) {
+            ScheduleExecuteType executeType = bean.getExecuteType();
+            if (Objects.isNull(executeType)) {
+                throw new RuntimeException(bean.getClass().getName() + " RetryTaskStrategy without executeType");
+            }
+            map.put(executeType.getCode(), bean);
+        }
+        taskStrategyExecutorFactory.setTaskStrategyExecutors(map);
+    }
+
+    private void initRetryTaskStrategy() {
+        Map<String, RetryTaskStrategy> beans = ApplicationContextAwareUtil.getApplicationContext().getBeansOfType(
+                RetryTaskStrategy.class);
+        Map<String, RetryTaskStrategy> map = new HashMap<>();
+        for (RetryTaskStrategy bean : beans.values()) {
+            RetryStrategyType strategyType = bean.getStrategyType();
+            if (Objects.isNull(strategyType)) {
+                throw new RuntimeException(bean.getClass().getName() + " RetryTaskStrategy without strategyType");
+            }
+            map.put(strategyType.getCode(), bean);
+        }
+        retryTaskStrategyFactory.setRetryTaskStrategyMap(map);
     }
 
     /**
      * initate every sql sentence
      */
-    private void initSqlMap(RetryDataSourceConfig retryDataSourceConfig) {
+    private void initSqlMap() {
 
         //initial insert sentence
         String mysqlOriginalInsertSql =
@@ -166,27 +171,26 @@ public class RetryTaskEventListener implements ApplicationListener<ApplicationSt
         //initial delete sentence
         String originaldeleteSql = "delete from retry_task where biz_id=:bizId and biz_type=:bizType ";
 
-        Map<String, String> sqlMap = new HashMap<String, String>();
+        Map<String, String> sqlMap = new HashMap<>();
 
         //mysql
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_INSERT.getCode(),
-                replaceTableName(mysqlOriginalInsertSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlOriginalInsertSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_UPDATE.getCode(),
-                replaceTableName(mysqlOriginalUpdateSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlOriginalUpdateSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_LOAD.getCode(),
-                replaceTableName(mysqlOriginalLoadSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlOriginalLoadSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_LOAD_UNUSUAL.getCode(),
-                replaceTableName(mysqlUnusualOrgiLoadSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlUnusualOrgiLoadSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_LOCK_BY_ID.getCode(),
-                replaceTableName(mysqlOriginalLockSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlOriginalLockSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_LOAD_BY_ID.getCode(),
-                replaceTableName(mysqlOriginalLoadByIdSql, retryDataSourceConfig.getTablePrefix()));
+                replaceTableName(mysqlOriginalLoadByIdSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_DELETE.getCode(),
-                replaceTableName(originaldeleteSql, retryDataSourceConfig.getTablePrefix()));
-
+                replaceTableName(originaldeleteSql, retryTaskConfigProperties.getTablePrefix()));
         sqlMap.put(DbType.MYSQL.getCode() + RetryTaskConstants.INTERVAL_CHAR + SqlType.SQL_TASK_LOAD_BY_PRIORITY.getCode(),
-                replaceTableName(mysqlOriginalLoadByPrioritySql, retryDataSourceConfig.getTablePrefix()));
-        retryDataSourceConfig.setSqlMap(sqlMap);
+                replaceTableName(mysqlOriginalLoadByPrioritySql, retryTaskConfigProperties.getTablePrefix()));
+        retryTaskFactory.setSqlMap(sqlMap);
     }
 
     private String replaceTableName(String sql, String tablePrefix) {

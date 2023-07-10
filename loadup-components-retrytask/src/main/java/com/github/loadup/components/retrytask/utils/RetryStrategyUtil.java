@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.utils;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,17 +28,27 @@ package com.github.loadup.components.retrytask.utils;
 
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
 import com.github.loadup.components.retrytask.model.RetryTask;
+import com.github.loadup.components.retrytask.strategy.RetryTaskStrategy;
+import com.github.loadup.components.retrytask.strategy.RetryTaskStrategyFactory;
 import java.util.Date;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import org.springframework.stereotype.Component;
 
 /**
  * 重试策略工具类
- *
- * 
- * 
  */
+@Component
 public class RetryStrategyUtil {
+    private static RetryStrategyUtil instance;
+
+    @Resource
+    private RetryTaskStrategyFactory retryTaskStrategyFactory;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
 
     /**
      * 分隔符
@@ -53,43 +63,15 @@ public class RetryStrategyUtil {
      */
     public static void updateRetryTaskByStrategy(RetryTask retryTask,
             RetryStrategyConfig retryStrategyConfig) {
-        String[] intervals = StringUtils.split(retryStrategyConfig.getStrategyValue(), SEPARATOR);
+        RetryTaskStrategy retryTaskStrategy = instance.retryTaskStrategyFactory.findRetryTaskStrategy(
+                retryStrategyConfig.getStrategyType());
         int executedTimes = retryTask.getExecutedTimes();
-        int maxExecuteTimes = retryTask.getMaxExecuteTimes();
-        Date lastExecuteTime = retryTask.getNextExecuteTime();
-
-        int intervalsIdx = (executedTimes + 1) >= intervals.length ? intervals.length - 1
-                : executedTimes;
-        int nextInterval = Integer.parseInt(intervals[intervalsIdx]);
-        Date nextExecuteTime = addTime(lastExecuteTime, nextInterval,
-                retryStrategyConfig.getStrategyValueUnit());
         retryTask.setExecutedTimes(executedTimes + 1);
-        retryTask.setGmtModified(new Date());
+        Date nextExecuteTime = retryTaskStrategy.calculateNextExecuteTime(retryTask, retryStrategyConfig);
         retryTask.setNextExecuteTime(nextExecuteTime);
+        retryTask.setGmtModified(new Date());
         retryTask.setProcessingFlag(false);
-        retryTask.setUpToMaxExecuteTimesFlag(
-                isReachMaxExecuteTimes(retryTask.getExecutedTimes(), maxExecuteTimes));
-    }
-
-    /**
-     * 根据不同时间单位添加时间间隔
-     *
-     * @param date
-     * @param unit
-     * @return
-     */
-    private static Date addTime(Date date, int interval, String unit) {
-
-        if (unit == "S") {
-            return DateUtils.addSeconds(date, interval);
-        } else if (unit == "H") {
-            return DateUtils.addHours(date, interval);
-        } else if (unit == "D") {
-            return DateUtils.addDays(date, interval);
-        } else {
-            return DateUtils.addMinutes(date, interval);
-        }
-
+        retryTask.setUpToMaxExecuteTimesFlag(isReachMaxExecuteTimes(executedTimes, retryTask.getMaxExecuteTimes()));
     }
 
     /**

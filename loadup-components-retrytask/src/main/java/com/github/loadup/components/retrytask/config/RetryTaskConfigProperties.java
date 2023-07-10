@@ -16,9 +16,13 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 public class RetryTaskConfigProperties {
+    /**
+     * the prefix of table name
+     */
+    private String tablePrefix = "";
+    private String dbType      = "MYSQL";
+
     @NestedConfigurationProperty
-    private List<RetryStrategyConfig>   strategyList   = new ArrayList<>();
-    @NestedConfigurationProperty
-    private List<RetryDataSourceConfig> dataSourceList = new ArrayList<>();
+    private List<RetryStrategyConfig> taskList = new ArrayList<>();
 
 }

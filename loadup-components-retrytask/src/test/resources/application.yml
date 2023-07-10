@@ -6,12 +6,12 @@ spring:
     password: Rvu8BVRBLXvywVKRTQ2H
 
 retrytask:
-  strategyList:
-    - bizType: DEMO1
-      maxLoadNum: 1000
-      executeImmediately: true
-      ignorePriority: true
-    - bizType: DEMO2
-      maxLoadNum: 1000
-      executeImmediately: true
-      ignorePriority: true
+  taskList:
+    - bizType: EXPONENTIAL
+      strategyType: EXPONENTIAL_WAIT_STRATEGY
+      strategyValue: 20,500
+      strategyValueUnit: S
+    - bizType: FIBONACCI
+      strategyType: FIBONACCI_WAIT_STRATEGY
+      strategyValue: 10,500
+      strategyValueUnit: S

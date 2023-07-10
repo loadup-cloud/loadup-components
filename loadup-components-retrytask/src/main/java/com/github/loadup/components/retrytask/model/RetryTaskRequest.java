@@ -12,10 +12,10 @@ package com.github.loadup.components.retrytask.model;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,14 +34,10 @@ import lombok.Setter;
 
 /**
  * requet of retry task
- *
- * 
- * 
  */
 @Getter
 @Setter
 public class RetryTaskRequest extends DTO {
-
 
     /**
      * business id，used as sharding index
@@ -56,12 +52,12 @@ public class RetryTaskRequest extends DTO {
     /**
      * the execute strategy of retry task
      */
-    private ScheduleExecuteType scheduleExecuteType;
+    private ScheduleExecuteType scheduleExecuteType = ScheduleExecuteType.ASYNC;
 
     /**
-     * the interval between The first time to execute and now, the unit is minute
+     * the interval between The first time to execute and now, the unit is seconds
      */
-    private int startExecuteInterval = 1;
+    private int startExecuteInterval = 0;
 
     /**
      * business context, which is stored with json format

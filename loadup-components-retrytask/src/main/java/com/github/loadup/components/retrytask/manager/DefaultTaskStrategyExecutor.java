@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.manager;
  * #L%
  */
 
+import com.github.loadup.components.retrytask.enums.ScheduleExecuteType;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,11 @@ import org.springframework.stereotype.Component;
 @Component
 
 public class DefaultTaskStrategyExecutor implements TaskStrategyExecutor {
+
+    @Override
+    public ScheduleExecuteType getExecuteType() {
+        return ScheduleExecuteType.DEFAULT;
+    }
 
     /**
      * @see TaskExecutor#execute(RetryTask)

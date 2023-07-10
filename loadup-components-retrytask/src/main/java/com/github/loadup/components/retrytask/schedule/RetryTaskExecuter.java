@@ -26,14 +26,15 @@ package com.github.loadup.components.retrytask.schedule;
  * #L%
  */
 
+import com.github.loadup.capability.common.util.log.LogUtils;
 import com.github.loadup.components.retrytask.config.RetryStrategyConfig;
-import com.github.loadup.components.retrytask.config.RetryStrategyFactory;
+import com.github.loadup.components.retrytask.config.RetryTaskFactory;
 import com.github.loadup.components.retrytask.constant.RetryTaskConstants;
 import com.github.loadup.components.retrytask.manager.RetryTaskExecutor;
 import com.github.loadup.components.retrytask.model.RetryTask;
 import com.github.loadup.components.retrytask.repository.RetryTaskRepository;
-import com.github.loadup.components.retrytask.transaction.TransactionTemplateFactory;
 import com.github.loadup.components.retrytask.utils.RetryStrategyUtil;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,13 +57,7 @@ public class RetryTaskExecuter {
      * the manager of retry strategy
      */
     @Autowired
-    private RetryStrategyFactory retryStrategyFactory;
-
-    /**
-     * the factory of transaction template
-     */
-    @Autowired
-    private TransactionTemplateFactory transactionTemplateFactory;
+    private RetryTaskFactory retryTaskFactory;
 
     /**
      * the executor of retry task
@@ -76,13 +71,9 @@ public class RetryTaskExecuter {
      * @param businessKey businessKey
      */
     public void execute(String businessKey) {
-
         RetryTask retryTaskNeedUpdate = process(businessKey);
-
-        postProcessIfNeed(retryTaskNeedUpdate, businessKey);
+        doAfterProcess(retryTaskNeedUpdate, businessKey);
     }
-
-    //~~~private method
 
     /**
      * process
@@ -92,9 +83,9 @@ public class RetryTaskExecuter {
      */
     private RetryTask process(String businessKey) {
 
-        String[] subStrings = StringUtils.split(businessKey, RetryTaskConstants.INTERVAL_CHAR);
+        String[] subStrings = StringUtils.split(businessKey, RetryTaskConstants.INTERVAL_CHAR, 2);
         if (subStrings == null || subStrings.length != 2) {
-            log.warn("businessKey is illegal", businessKey);
+            log.warn("businessKey is illegal, {}", businessKey);
             return null;
         }
 
@@ -102,39 +93,11 @@ public class RetryTaskExecuter {
         final String bizId = subStrings[1];
 
         RetryTask retryTask = null;
-
-        RetryStrategyConfig retryStrategyConfig = retryStrategyFactory.buildRetryStrategyConfig(bizType);
-
-        retryTask = doBiz(bizType, bizId, false);
-
-        return retryTask;
-    }
-
-    /**
-     * process
-     *
-     * @param bizType         bizType
-     * @param bizId           bizId
-     * @param needTransaction needTransaction
-     * @return RetryTask
-     */
-    private RetryTask doBiz(String bizType, String bizId, boolean needTransaction) {
-
-        RetryTask retryTask = null;
-
-        // catch exception here, so outer layer do not need to care about the exception, but only check the retryTask
         try {
-
-            // get retryTask
-            if (needTransaction) {
-                retryTask = retryTaskRepository.lockByBizId(bizId, bizType);
-            } else {
-                retryTask = retryTaskRepository.loadByBizId(bizId, bizType);
-            }
+            retryTask = retryTaskRepository.loadByBizId(bizId, bizType);
 
             if (retryTask == null) {
-                log
-                        .warn("the task is not existed ,bizId=", bizId, ",bizType=", bizType);
+                log.warn("the task is not existed ,bizId=", bizId, ",bizType=", bizType);
                 return null;
             }
 
@@ -144,8 +107,7 @@ public class RetryTaskExecuter {
             return null;
 
         } catch (Exception exception) {
-            log.warn("the task executed failed ,bizId=", bizId, ",bizType=",
-                    bizType);
+            log.warn("the task executed failed ,bizId=", bizId, ",bizType=", bizType);
         }
 
         return retryTask;
@@ -157,25 +119,17 @@ public class RetryTaskExecuter {
      * @param retryTaskNeedUpdate retryTaskNeedUpdate
      * @param businessKey         businessKey
      */
-    private void postProcessIfNeed(RetryTask retryTaskNeedUpdate, String businessKey) {
-
+    private void doAfterProcess(RetryTask retryTaskNeedUpdate, String businessKey) {
         // if process fail, then
-        if (retryTaskNeedUpdate != null) {
-
+        if (Objects.nonNull(retryTaskNeedUpdate)) {
             try {
                 // retry next time
-                RetryStrategyConfig retryStrategyConfig = retryStrategyFactory
-                        .buildRetryStrategyConfig(retryTaskNeedUpdate.getBizType());
-                RetryStrategyUtil.updateRetryTaskByStrategy(retryTaskNeedUpdate,
-                        retryStrategyConfig);
+                RetryStrategyConfig retryStrategyConfig = retryTaskFactory.buildRetryStrategyConfig(retryTaskNeedUpdate.getBizType());
+                RetryStrategyUtil.updateRetryTaskByStrategy(retryTaskNeedUpdate, retryStrategyConfig);
                 retryTaskRepository.update(retryTaskNeedUpdate);
             } catch (Exception e) {
-                log.error(
-                        "the task update failed when do postProcessIfNeed, businessKey=", businessKey);
+                LogUtils.error(log, "the task update failed when do after process, businessKey={}", businessKey);
             }
-
         }
-
     }
-
 }

@@ -42,38 +42,24 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Getter
 @Setter
-public class RetryStrategyFactory {
-
-    private Map<String, RetryDataSourceConfig> retryDataSourceConfigs = new HashMap<>();
+public class RetryTaskFactory {
     /**
-     * retry stategy config.key: bizType
+     * sql sentence in every database
+     *
+     * key:  DbType-SqlType
+     * value: sql sentence
      */
-    private Map<String, RetryStrategyConfig>   retryStrategyConfigs   = new HashMap<>();
+    private Map<String, String>              sqlMap;
+    private String                           tablePrefix;
+    private String                           dbType;
     /**
      * default shedule thread pool
      */
-    private ThreadPoolTaskExecutor             scheduleThreadPool;
-
+    private ThreadPoolTaskExecutor           scheduleThreadPool;
     /**
-     * obtain the retry datasource config by business type
-     *
-     * @param bizType business type
-     * @return RetryDataSourceConfig
+     * retry stategy config.key: bizType
      */
-    public RetryDataSourceConfig buildRetryDataSourceConfig(String bizType) {
-
-        // match by bizType first
-        if (retryDataSourceConfigs.get(bizType) != null) {
-            return retryDataSourceConfigs.get(bizType);
-        }
-
-        // match by 'DEFAULT' second
-        if (retryDataSourceConfigs.get(RetryTaskConstants.DEFAULT_BIZ_TYPE) != null) {
-            return retryDataSourceConfigs.get(RetryTaskConstants.DEFAULT_BIZ_TYPE);
-        }
-
-        return null;
-    }
+    private Map<String, RetryStrategyConfig> retryStrategyConfigs = new HashMap<>();
 
     /**
      * obtain the retry strategy config by business type
