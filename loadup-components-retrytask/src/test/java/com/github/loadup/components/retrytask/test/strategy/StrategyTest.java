@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
@@ -110,6 +111,36 @@ public class StrategyTest extends BaseTest {
             retryTask.setNextExecuteTime(date);
 
             assertDateEquals(date, DateUtils.addSeconds(oriNextExecuteTime, v));
+        });
+    }
+
+    @Test
+    void testRandomWaitStrategy() {
+        RetryTask retryTask = new RetryTask();
+        retryTask.setMaxExecuteTimes(-1);
+        retryTask.setNextExecuteTime(new Date());
+
+        RetryStrategyConfig config = new RetryStrategyConfig();
+        String strategyType = RetryStrategyType.RANDOM_WAIT_STRATEGY.getCode();
+        config.setStrategyType(strategyType);
+        config.setStrategyValue("10,20");
+        config.setStrategyValueUnit(TimeUnitEnum.SECOND.getCode());
+
+        Map<Integer, Integer> mapping = new HashMap<>();
+        mapping.put(1, 20);
+        mapping.put(2, 20);
+        mapping.put(3, 20);
+        mapping.put(4, 20);
+        mapping.put(5, 20);
+        mapping.forEach((k, v) -> {
+            retryTask.setExecutedTimes(k);
+            Date date = retryTaskStrategyFactory.findRetryTaskStrategy(strategyType)
+                    .calculateNextExecuteTime(retryTask, config);
+            Date oriNextExecuteTime = retryTask.getNextExecuteTime();
+            log.info("executedTimes={},currentExecuteTime={},nextExecuteTime={}", k, oriNextExecuteTime, date);
+            retryTask.setNextExecuteTime(date);
+            Assertions.assertTrue(DateUtils.addSeconds(oriNextExecuteTime, v).after(date));
+            Assertions.assertTrue(DateUtils.addSeconds(oriNextExecuteTime, 9).before(date));
         });
     }
 }

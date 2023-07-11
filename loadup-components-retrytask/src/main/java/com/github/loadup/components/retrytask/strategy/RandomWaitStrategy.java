@@ -44,7 +44,14 @@ public class RandomWaitStrategy implements RetryTaskStrategy {
         }
         long result = Math.abs(RandomUtils.nextLong()) % (maximum - minimum);
         Date lastExecuteTime = retryTask.getNextExecuteTime();
-        return addTime(lastExecuteTime, Math.toIntExact(result + 1), retryStrategyConfig.getStrategyValueUnit());
+        return addTime(lastExecuteTime, Math.toIntExact(result + minimum), retryStrategyConfig.getStrategyValueUnit());
+    }
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 100; i++) {
+
+            System.out.println(RandomUtils.nextLong() % 10);
+        }
     }
 
 }
