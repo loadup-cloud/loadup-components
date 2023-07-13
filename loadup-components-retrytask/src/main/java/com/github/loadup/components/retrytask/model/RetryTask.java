@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.model;
  * #L%
  */
 
+
 import com.github.loadup.capability.common.model.DTO;
 import com.github.loadup.capability.common.util.ToStringUtils;
 import java.util.Date;

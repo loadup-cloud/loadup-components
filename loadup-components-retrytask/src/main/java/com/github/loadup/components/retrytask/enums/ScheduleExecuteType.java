@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.enums;
  * #L%
  */
 
+
 import com.github.loadup.capability.common.enums.IEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

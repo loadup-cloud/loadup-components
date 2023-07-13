@@ -27,6 +27,7 @@ package com.github.loadup.components.retrytask.repository;
  * #L%
  */
 
+
 import com.github.loadup.components.retrytask.model.RetryTask;
 import java.util.List;
 

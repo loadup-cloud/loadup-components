@@ -26,6 +26,7 @@ package om.github.loadup.components.captcha.service;
  * #L%
  */
 
+
 import java.io.OutputStream;
 
 public interface CaptchaService {

@@ -26,6 +26,7 @@ package com.github.loadup.components.retrytask.utils;
  * #L%
  */
 
+
 import com.github.loadup.capability.common.util.log.LogUtils;
 import java.sql.ResultSet;
 import java.sql.SQLException;

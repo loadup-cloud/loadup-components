@@ -2,7 +2,7 @@ package com.github.loadup.components.netwotk.config;
 
 /*-
  * #%L
- * loadup-components-ip
+ * loadup-components-network
  * %%
  * Copyright (C) 2022 - 2023 loadup_cloud
  * %%
@@ -25,6 +25,7 @@ package com.github.loadup.components.netwotk.config;
  * THE SOFTWARE.
  * #L%
  */
+
 
 import java.io.IOException;
 import java.util.Objects;
