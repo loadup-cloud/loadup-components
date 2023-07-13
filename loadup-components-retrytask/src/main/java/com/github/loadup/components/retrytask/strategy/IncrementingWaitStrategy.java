@@ -36,7 +36,7 @@ public class IncrementingWaitStrategy implements RetryTaskStrategy {
         }
         long result = initialSleepTime + (increment * (retryTask.getExecutedTimes() - 1));
         Date lastExecuteTime = retryTask.getNextExecuteTime();
-        return addTime(lastExecuteTime, Math.toIntExact(result + 1), retryStrategyConfig.getStrategyValueUnit());
+        return addTime(lastExecuteTime, Math.toIntExact(result), retryStrategyConfig.getStrategyValueUnit());
     }
 
 }

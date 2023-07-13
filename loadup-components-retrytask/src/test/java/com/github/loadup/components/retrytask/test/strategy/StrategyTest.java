@@ -143,4 +143,34 @@ public class StrategyTest extends BaseTest {
             Assertions.assertTrue(DateUtils.addSeconds(oriNextExecuteTime, 9).before(date));
         });
     }
+
+    @Test
+    void testIncrementingWaitStrategy() {
+        RetryTask retryTask = new RetryTask();
+        retryTask.setMaxExecuteTimes(-1);
+        retryTask.setNextExecuteTime(new Date());
+
+        RetryStrategyConfig config = new RetryStrategyConfig();
+        String strategyType = RetryStrategyType.INCREMENTING_WAIT_STRATEGY.getCode();
+        config.setStrategyType(strategyType);
+        config.setStrategyValue("10,5");
+        config.setStrategyValueUnit(TimeUnitEnum.SECOND.getCode());
+
+        Map<Integer, Integer> mapping = new HashMap<>();
+        mapping.put(1, 15);
+        mapping.put(2, 20);
+        mapping.put(3, 25);
+        mapping.put(4, 30);
+        mapping.put(5, 35);
+        mapping.forEach((k, v) -> {
+            retryTask.setExecutedTimes(k);
+            Date date = retryTaskStrategyFactory.findRetryTaskStrategy(strategyType)
+                    .calculateNextExecuteTime(retryTask, config);
+            Date oriNextExecuteTime = retryTask.getNextExecuteTime();
+            log.info("executedTimes={},currentExecuteTime={},nextExecuteTime={}", k, oriNextExecuteTime, date);
+            retryTask.setNextExecuteTime(date);
+            Assertions.assertTrue(DateUtils.addSeconds(oriNextExecuteTime, v).after(date));
+            Assertions.assertTrue(DateUtils.addSeconds(oriNextExecuteTime, 9).before(date));
+        });
+    }
 }
